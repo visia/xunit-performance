@@ -58,6 +58,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.performance.run.core", "src\xunit.performance.run.core\xunit.performance.run.core.csproj", "{55595E8A-EB17-41B4-82BD-BF26FDAD618B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.performance.consumption", "src\xunit.performance.consumption\xunit.performance.consumption.csproj", "{663E1B15-8378-4A55-BCA2-85DF4FB059BB}"
+	ProjectSection(ProjectDependencies) = postProject
+		{E8ABD75E-4F88-434F-B400-30AB32FDB0ED} = {E8ABD75E-4F88-434F-B400-30AB32FDB0ED}
+		{517B6982-4F98-417F-9987-9C6B64EE6E1C} = {517B6982-4F98-417F-9987-9C6B64EE6E1C}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
