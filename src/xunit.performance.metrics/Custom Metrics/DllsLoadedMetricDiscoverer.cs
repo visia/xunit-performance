@@ -120,7 +120,8 @@ namespace Microsoft.Xunit.Performance
                     var moduleID = _objectModuleDict[classID];
                     var moduleName = _moduleNameDict[moduleID];
                     var size = data.Size;
-                    _objects.addItem(moduleName, size);
+                    if(_objects != null)
+                        _objects.addItem(moduleName, size);
                 }
             }
 

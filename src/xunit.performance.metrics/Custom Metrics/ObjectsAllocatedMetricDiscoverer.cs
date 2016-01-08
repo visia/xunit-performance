@@ -74,7 +74,8 @@ namespace Microsoft.Xunit.Performance
                     var classID = data.ClassID.ToString();
                     var className = _objectNameDict[classID];
                     var size = data.Size;
-                    _objects.addItem(className, size);
+                    if (_objects != null)
+                        _objects.addItem(className, size);
                 }
             }
 
