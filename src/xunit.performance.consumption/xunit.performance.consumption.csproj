@@ -58,12 +58,6 @@
       <HintPath>..\packages\xunit.extensibility.execution.2.1.0\lib\net45\xunit.execution.desktop.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="xunit.performance.execution.desktop">
-      <HintPath>..\xunit.performance.execution.desktop\bin\Debug\xunit.performance.execution.desktop.dll</HintPath>
-    </Reference>
-    <Reference Include="xunit.performance.metrics">
-      <HintPath>..\xunit.performance.metrics\bin\Debug\xunit.performance.metrics.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="FormatXML.cs" />
@@ -80,6 +74,14 @@
     <ProjectReference Include="..\xunit.performance.core\xunit.performance.core.csproj">
       <Project>{d8820889-cc47-42b6-bac1-01d16d241ece}</Project>
       <Name>xunit.performance.core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\xunit.performance.execution.desktop\xunit.performance.execution.desktop.csproj">
+      <Project>{e8abd75e-4f88-434f-b400-30ab32fdb0ed}</Project>
+      <Name>xunit.performance.execution.desktop</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\xunit.performance.metrics\xunit.performance.metrics.csproj">
+      <Project>{517b6982-4f98-417f-9987-9c6b64ee6e1c}</Project>
+      <Name>xunit.performance.metrics</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
