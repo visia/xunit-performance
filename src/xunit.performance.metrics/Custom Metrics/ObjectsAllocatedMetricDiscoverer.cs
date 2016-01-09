@@ -46,7 +46,7 @@ namespace Microsoft.Xunit.Performance
         private class ObjectsAllocatedEvaluator : PerformanceMetricEvaluator
         {
             private readonly PerformanceMetricEvaluationContext _context;
-            private static ListMetricInfo _objects;
+            private static ListMetricInfo _objects = null;
             private static Dictionary<string, string> _objectNameDict = new Dictionary<string, string>();
 
             public ObjectsAllocatedEvaluator(PerformanceMetricEvaluationContext context)
@@ -87,7 +87,9 @@ namespace Microsoft.Xunit.Performance
 
             public override object EndIteration(TraceEvent endEvent)
             {
-                return _objects;
+                var ret = _objects;
+                _objects = null;
+                return ret;
             }
         }
     }
