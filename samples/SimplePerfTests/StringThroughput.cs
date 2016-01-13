@@ -8,8 +8,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using Xunit;
 
-[MeasureGCCounts]
-[MeasureGCAllocations]
+[MeasureDefaultMetrics]
 public static class StringThroughput
 {
     #region helpers
