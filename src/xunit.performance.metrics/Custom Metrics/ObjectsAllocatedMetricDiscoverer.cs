@@ -17,7 +17,7 @@ namespace Microsoft.Xunit.Performance
         private class ObjectsAllocatedMetric : PerformanceMetric
         {
             public ObjectsAllocatedMetric()
-                : base("ObjectsAllocated", "Objects Allocated", PerformanceMetricUnits.List)
+                : base("ObjectsAllocated", "Objects Allocated", PerformanceMetricUnits.ListCount)
             {
             }
 
@@ -87,6 +87,7 @@ namespace Microsoft.Xunit.Performance
             {
                 _objects = new ListMetricInfo();
                 _objects.clear();
+                _objects.hasCount = true;
             }
 
             public override object EndIteration(TraceEvent endEvent)

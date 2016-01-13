@@ -18,7 +18,7 @@ namespace Microsoft.Xunit.Performance
         private class CallsEnteredMetric : PerformanceMetric
         {
             public CallsEnteredMetric()
-                : base("CallsEntered", "Calls Entered", PerformanceMetricUnits.List)
+                : base("CallsEntered", "Calls Entered", PerformanceMetricUnits.ListCount)
             {
             }
 
@@ -46,7 +46,7 @@ namespace Microsoft.Xunit.Performance
         {
             private readonly PerformanceMetricEvaluationContext _context;
             private static ListMetricInfo _objects = null;
-            const int MINCALLS = 10;
+            const int MINCALLS = 1;
 
             public CallsEnteredEvaluator(PerformanceMetricEvaluationContext context)
             {
@@ -84,6 +84,7 @@ namespace Microsoft.Xunit.Performance
             {
                 _objects = new ListMetricInfo();
                 _objects.clear();
+                _objects.hasCount = true;
             }
 
             public override object EndIteration(TraceEvent endEvent)

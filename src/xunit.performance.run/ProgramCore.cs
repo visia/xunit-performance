@@ -137,8 +137,8 @@ namespace Microsoft.Xunit.Performance
             };
 
             startInfo.Environment["XUNIT_PERFORMANCE_RUN_ID"] = project.RunId;
-            startInfo.Environment["XUNIT_PERFORMANCE_MIN_ITERATION"] = "2";
-            startInfo.Environment["XUNIT_PERFORMANCE_MAX_ITERATION"] = "10";
+            startInfo.Environment["XUNIT_PERFORMANCE_MIN_ITERATION"] = "0";
+            startInfo.Environment["XUNIT_PERFORMANCE_MAX_ITERATION"] = "0";
             startInfo.Environment["XUNIT_PERFORMANCE_MAX_TOTAL_MILLISECONDS"] = "1000";
             startInfo.Environment["COMPLUS_gcConcurrent"] = "0";
             startInfo.Environment["COMPLUS_gcServer"] = "0";
@@ -181,7 +181,17 @@ Arguments: {startInfo.Arguments}");
                         perfElem.Add(metricsElem);
 
                         foreach (var metric in metrics)
-                            metricsElem.Add(new XElement(metric.Id, new XAttribute("displayName", metric.DisplayName), new XAttribute("unit", metric.Unit)));
+                        {
+                            if (metric.Unit == PerformanceMetricUnits.ListCount)
+                            {
+                                metricsElem.Add(new XElement(metric.Id, new XAttribute("displayName", metric.DisplayName), new XAttribute("unit", PerformanceMetricUnits.List)));
+                                metricsElem.Add(new XElement(metric.Id + "Count", new XAttribute("displayName", metric.DisplayName + " Count"), new XAttribute("unit", PerformanceMetricUnits.Count)));
+                            }
+                            else
+                            {
+                                metricsElem.Add(new XElement(metric.Id, new XAttribute("displayName", metric.DisplayName), new XAttribute("unit", metric.Unit)));
+                            }
+                        }
                     }
 
                     var iterations = evaluationContext.GetValues(testName);
@@ -207,6 +217,10 @@ Arguments: {startInfo.Arguments}");
                                     else // result is a list, add the list as a new element
                                     {
                                         ListMetricInfo listMetricInfo = (ListMetricInfo)value.Value;
+                                        if (listMetricInfo.hasCount)
+                                        {
+                                            iterationElem.Add(new XAttribute(value.Key + "Count", listMetricInfo.count.ToString()));
+                                        }
                                         var listResult = new XElement("ListResult");
                                         listResult.Add(new XAttribute("Name", value.Key));
                                         listResult.Add(new XAttribute("Iteration", i));
@@ -355,6 +369,8 @@ Arguments: {startInfo.Arguments}");
                             throw new ArgumentException("missing argument for -runner");
 
                         project.RunnerCommand = option.Value;
+                        if (Directory.Exists(project.RunnerCommand))
+                            project.RunnerCommand = Path.Combine(project.RunnerCommand, "xunit.console.exe");
                         break;
 
                     case "runnerargs":

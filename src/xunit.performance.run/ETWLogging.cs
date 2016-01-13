@@ -58,7 +58,7 @@ namespace Microsoft.Xunit.Performance
         public static async Task<IDisposable> StartAsync(string etlPath, IEnumerable<ProviderInfo> providers)
         {
             var allProviders = s_requiredProviders.Concat(providers).ToArray();
-            var sessionName = await s_loggerDomain.ExecuteAsync(() => Logger.Start(etlPath, allProviders, 128));
+            var sessionName = await s_loggerDomain.ExecuteAsync(() => Logger.Start(etlPath, allProviders, 512));
             return new Stopper(sessionName);
         }
     }
