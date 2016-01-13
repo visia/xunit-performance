@@ -362,6 +362,7 @@ namespace Microsoft.Diagnostics.Tracing.Parsers.ETWClrProfiler
     public sealed class CallEnterArgs : TraceEvent
     {
         public Address FunctionID { get { return (Address) GetInt64At(0); } }
+        public string FunctionName { get { return GetUnicodeStringAt(8); } }
 
         #region Private
         internal CallEnterArgs(Action<CallEnterArgs> target, int eventID, int task, string taskName, Guid taskGuid, int opcode, string opcodeName, Guid providerGuid, string providerName)
@@ -387,6 +388,7 @@ namespace Microsoft.Diagnostics.Tracing.Parsers.ETWClrProfiler
         {
              Prefix(sb);
              XmlAttrib(sb, "FunctionID", FunctionID);
+             XmlAttrib(sb, "FunctionName", FunctionName);
              sb.Append("/>");
              return sb;
         }
@@ -396,7 +398,7 @@ namespace Microsoft.Diagnostics.Tracing.Parsers.ETWClrProfiler
             get
             {
                 if (payloadNames == null)
-                    payloadNames = new string[] { "FunctionID"};
+                    payloadNames = new string[] { "FunctionID", "FunctionName"};
                 return payloadNames;
             }
         }
@@ -407,6 +409,8 @@ namespace Microsoft.Diagnostics.Tracing.Parsers.ETWClrProfiler
             {
                 case 0:
                     return FunctionID;
+                case 1:
+                    return FunctionName;
                 default:
                     Debug.Assert(false, "Bad field index");
                     return null;

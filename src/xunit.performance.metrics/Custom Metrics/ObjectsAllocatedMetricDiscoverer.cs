@@ -29,10 +29,10 @@ namespace Microsoft.Xunit.Performance
                     {
                         ProviderGuid = ETWClrProfilerTraceEventParser.ProviderGuid,
                         Level = TraceEventLevel.Verbose,
-                        Keywords = (ulong)(ETWClrProfilerTraceEventParser.Keywords.Call
-                                         | ETWClrProfilerTraceEventParser.Keywords.CallSampled
-                                         | ETWClrProfilerTraceEventParser.Keywords.GCAlloc
-                                         | ETWClrProfilerTraceEventParser.Keywords.GCAllocSampled)
+                        Keywords = (ulong)( ETWClrProfilerTraceEventParser.Keywords.GCAlloc
+                                         | ETWClrProfilerTraceEventParser.Keywords.GCAllocSampled
+                                         | ETWClrProfilerTraceEventParser.Keywords.Call
+                                         | ETWClrProfilerTraceEventParser.Keywords.CallSampled)
                     };
                 }
             }
@@ -72,7 +72,11 @@ namespace Microsoft.Xunit.Performance
                 {
                     //_objects.addItem(data.FileName, data.IoSize);
                     var classID = data.ClassID.ToString();
-                    var className = _objectNameDict[classID];
+                    string className;
+                    if (!_objectNameDict.TryGetValue(classID, out className))
+                    {
+                        return;
+                    }
                     var size = data.Size;
                     if (_objects != null)
                         _objects.addItem(className, size);

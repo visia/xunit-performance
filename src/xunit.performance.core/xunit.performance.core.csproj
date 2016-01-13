@@ -62,6 +62,7 @@
     <Compile Include="Custom Metrics\MeasureAppDomainUnLoadAttribute.cs" />
     <Compile Include="Custom Metrics\MeasureAssemblyLoadAttribute.cs" />
     <Compile Include="Custom Metrics\MeasureAssemblyUnloadAttribute.cs" />
+    <Compile Include="Custom Metrics\MeasureCallsEnteredAttribute.cs" />
     <Compile Include="Custom Metrics\MeasureDiskIOReadAttribute.cs" />
     <Compile Include="Custom Metrics\MeasureDiskIOWriteAttribute.cs" />
     <Compile Include="Custom Metrics\MeasureDllsLoadedAttribute.cs" />

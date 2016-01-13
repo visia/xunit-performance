@@ -9,6 +9,7 @@ namespace Microsoft.Xunit.Performance
     /// </summary>
     [PerformanceMetricDiscoverer("Microsoft.Xunit.Performance.AppDomainLoadMetricDiscoverer", "xunit.performance.metrics")]
     [PerformanceMetricDiscoverer("Microsoft.Xunit.Performance.AssemblyLoadMetricDiscoverer", "xunit.performance.metrics")]
+    [PerformanceMetricDiscoverer("Microsoft.Xunit.Performance.CallsEnteredMetricDiscoverer", "xunit.performance.metrics")]
     [PerformanceMetricDiscoverer("Microsoft.Xunit.Performance.DllsLoadedMetricDiscoverer", "xunit.performance.metrics")]
     [PerformanceMetricDiscoverer("Microsoft.Xunit.Performance.ExceptionsMetricDiscoverer", "xunit.performance.metrics")]
     [PerformanceMetricDiscoverer("Microsoft.Xunit.Performance.FileIOReadMetricDiscoverer", "xunit.performance.metrics")]

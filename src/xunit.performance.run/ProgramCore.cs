@@ -219,7 +219,7 @@ Arguments: {startInfo.Arguments}");
                                             ListMetric.Add(new XAttribute("Type", listMetric.Type.Name));
                                             listResult.Add(ListMetric);
                                         }
-                                        foreach(var listItem in listMetricInfo.Items)
+                                        foreach(var listItem in listMetricInfo.Items.OrderByDescending(key => key.Value.Size))
                                         {
                                             var ListItem = new XElement("ListItem");
                                             ListItem.Add(new XAttribute("Name", listItem.Key));

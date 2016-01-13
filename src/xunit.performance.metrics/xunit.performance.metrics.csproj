@@ -59,6 +59,7 @@
     <Compile Include="Custom Metrics\AppDomainUnLoadMetricDiscoverer.cs" />
     <Compile Include="Custom Metrics\AssemblyLoadMetricDiscoverer.cs" />
     <Compile Include="Custom Metrics\AssemblyUnloadMetricDiscoverer.cs" />
+    <Compile Include="Custom Metrics\CallsEnteredMetricDiscoverer.cs" />
     <Compile Include="Custom Metrics\DiskIOReadMetricDiscoverer.cs" />
     <Compile Include="Custom Metrics\DiskIOWriteMetricDiscoverer.cs" />
     <Compile Include="Custom Metrics\DllsLoadedMetricDiscoverer.cs" />

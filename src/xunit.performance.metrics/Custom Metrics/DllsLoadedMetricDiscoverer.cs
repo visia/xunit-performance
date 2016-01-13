@@ -29,10 +29,10 @@ namespace Microsoft.Xunit.Performance
                     {
                         ProviderGuid = ETWClrProfilerTraceEventParser.ProviderGuid,
                         Level = TraceEventLevel.Verbose,
-                        Keywords = (ulong)(ETWClrProfilerTraceEventParser.Keywords.Call
-                                         | ETWClrProfilerTraceEventParser.Keywords.CallSampled
-                                         | ETWClrProfilerTraceEventParser.Keywords.GCAlloc
-                                         | ETWClrProfilerTraceEventParser.Keywords.GCAllocSampled)
+                        Keywords = (ulong)(ETWClrProfilerTraceEventParser.Keywords.GCAlloc
+                                         | ETWClrProfilerTraceEventParser.Keywords.GCAllocSampled
+                                         | ETWClrProfilerTraceEventParser.Keywords.Call
+                                         | ETWClrProfilerTraceEventParser.Keywords.CallSampled)
                     };
                 }
             }
@@ -99,7 +99,8 @@ namespace Microsoft.Xunit.Performance
 
                     if (!_className_classIDDict.TryGetValue(fixedClassName, out fixedClassID))
                     {
-                        throw new System.Exception($"Cannot find class ID for class {fixedClassName}");
+                        //throw new System.Exception($"Cannot find class ID for class {fixedClassName}");
+                        return;
                     }
 
                     if(!_objectModuleDict.TryGetValue(fixedClassID, out moduleID))
@@ -113,8 +114,16 @@ namespace Microsoft.Xunit.Performance
                 if (_context.IsTestEvent(data))
                 {
                     var classID = data.ClassID.ToString();
-                    var moduleID = _objectModuleDict[classID];
-                    var moduleName = _moduleNameDict[moduleID];
+                    string moduleID;
+                    if(!_objectModuleDict.TryGetValue(classID, out moduleID))
+                    {
+                        return;
+                    }
+                    string moduleName;
+                    if (!_moduleNameDict.TryGetValue(moduleID, out moduleName))
+                    {
+                        return;
+                    }
                     var size = data.Size;
                     if(_objects != null)
                         _objects.addItem(moduleName, size);
