@@ -60,7 +60,8 @@ namespace Microsoft.Xunit.Performance
                 if (_context.IsTestEvent(data))
                 {
                     var functionName = data.FunctionName.ToString();
-                    _objects.addItem(functionName, 1);
+                    if (_objects != null)
+                        _objects.addItem(functionName, 1);
                 }
             }
 
