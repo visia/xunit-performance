@@ -15,6 +15,23 @@ namespace Microsoft.Xunit.Performance
 
         public IEnumerable<Metrics> MetricList { get { return new Metrics[] { Name, Size, Count }; } }
 
+        public bool hasCount = false;
+        
+        public long count
+        {
+            get
+            {
+                if (hasCount == false)
+                    return 0;
+                long count = 0;
+                foreach(var item in Items)
+                {
+                    count += item.Value.Count;
+                }
+                return count;
+            }
+        }
+
         public ListMetricInfo()
         {
             initializeMetrics();
