@@ -137,8 +137,8 @@ namespace Microsoft.Xunit.Performance
             };
 
             startInfo.Environment["XUNIT_PERFORMANCE_RUN_ID"] = project.RunId;
-            startInfo.Environment["XUNIT_PERFORMANCE_MIN_ITERATION"] = "0";
-            startInfo.Environment["XUNIT_PERFORMANCE_MAX_ITERATION"] = "0";
+            startInfo.Environment["XUNIT_PERFORMANCE_MIN_ITERATION"] = "1";
+            startInfo.Environment["XUNIT_PERFORMANCE_MAX_ITERATION"] = "1";
             startInfo.Environment["XUNIT_PERFORMANCE_MAX_TOTAL_MILLISECONDS"] = "1000";
             startInfo.Environment["COMPLUS_gcConcurrent"] = "0";
             startInfo.Environment["COMPLUS_gcServer"] = "0";
