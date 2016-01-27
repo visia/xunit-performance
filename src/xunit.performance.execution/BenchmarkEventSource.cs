@@ -26,6 +26,8 @@ namespace Microsoft.Xunit.Performance
 
         private static readonly StreamWriter _csvWriter = OpenCSV();
 
+        private static System.Threading.EventWaitHandle ProfilerEvent = null;
+
         [NonEvent]
         private static StreamWriter OpenCSV()
         {
@@ -70,6 +72,12 @@ namespace Microsoft.Xunit.Performance
         [Event(1, Opcode = EventOpcode.Info, Task = Tasks.BenchmarkStart)]
         public unsafe void BenchmarkStart(string RunId, string BenchmarkName)
         {
+            if (ProfilerEvent == null)
+            {
+                ProfilerEvent = new System.Threading.EventWaitHandle(false, System.Threading.EventResetMode.ManualReset, "Local\\BenchmarkActive");
+            }
+            ProfilerEvent.Set();
+
             if (_csvWriter != null)
                 WriteCSV(BenchmarkName);
 
@@ -94,6 +102,20 @@ namespace Microsoft.Xunit.Performance
         [Event(2, Opcode = EventOpcode.Info, Task = Tasks.BenchmarkStop)]
         public unsafe void BenchmarkStop(string RunId, string BenchmarkName, string StopReason)
         {
+            if (ProfilerEvent == null)
+            {
+                try
+                {
+                    ProfilerEvent = System.Threading.EventWaitHandle.OpenExisting("Local\\BenchmarkActive");
+                }
+                catch (System.Exception e)
+                {
+                    throw e;
+                }
+            }
+            ProfilerEvent.Reset();
+
+
             if (IsEnabled())
             {
                 if (RunId == null)
