@@ -38,7 +38,7 @@ namespace Microsoft.Xunit.Performance
             }
             set
             {
-                _outputDir = System.IO.Path.Combine(value, OutputBaseFileName);
+                _outputDir = value;
             }
         }
 
