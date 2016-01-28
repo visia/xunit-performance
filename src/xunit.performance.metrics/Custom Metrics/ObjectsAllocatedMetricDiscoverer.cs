@@ -46,7 +46,7 @@ namespace Microsoft.Xunit.Performance
         private class ObjectsAllocatedEvaluator : PerformanceMetricEvaluator
         {
             private readonly PerformanceMetricEvaluationContext _context;
-            private static ListMetricInfo _objects = null;
+            private ListMetricInfo _objects = null;
             private static Dictionary<string, string> _objectNameDict = new Dictionary<string, string>();
 
             public ObjectsAllocatedEvaluator(PerformanceMetricEvaluationContext context)

@@ -72,12 +72,6 @@ namespace Microsoft.Xunit.Performance
         [Event(1, Opcode = EventOpcode.Info, Task = Tasks.BenchmarkStart)]
         public unsafe void BenchmarkStart(string RunId, string BenchmarkName)
         {
-            if (ProfilerEvent == null)
-            {
-                ProfilerEvent = new System.Threading.EventWaitHandle(false, System.Threading.EventResetMode.ManualReset, "Local\\BenchmarkActive");
-            }
-            ProfilerEvent.Set();
-
             if (_csvWriter != null)
                 WriteCSV(BenchmarkName);
 
@@ -102,20 +96,6 @@ namespace Microsoft.Xunit.Performance
         [Event(2, Opcode = EventOpcode.Info, Task = Tasks.BenchmarkStop)]
         public unsafe void BenchmarkStop(string RunId, string BenchmarkName, string StopReason)
         {
-            if (ProfilerEvent == null)
-            {
-                try
-                {
-                    ProfilerEvent = System.Threading.EventWaitHandle.OpenExisting("Local\\BenchmarkActive");
-                }
-                catch (System.Exception e)
-                {
-                    throw e;
-                }
-            }
-            ProfilerEvent.Reset();
-
-
             if (IsEnabled())
             {
                 if (RunId == null)
@@ -143,6 +123,13 @@ namespace Microsoft.Xunit.Performance
         [Event(3, Opcode = EventOpcode.Info, Task = Tasks.BenchmarkIterationStart)]
         public unsafe void BenchmarkIterationStart(string RunId, string BenchmarkName, int Iteration)
         {
+            if (ProfilerEvent == null)
+            {
+                ProfilerEvent = new System.Threading.EventWaitHandle(false, System.Threading.EventResetMode.ManualReset, "Local\\BenchmarkActive");
+            }
+
+            ProfilerEvent.Set();
+
             if (_csvWriter != null)
                 WriteCSV(BenchmarkName, iteration: Iteration);
 
@@ -169,6 +156,20 @@ namespace Microsoft.Xunit.Performance
         [Event(4, Opcode = EventOpcode.Info, Task = Tasks.BenchmarkIterationStop)]
         public unsafe void BenchmarkIterationStop(string RunId, string BenchmarkName, int Iteration, bool Success)
         {
+            if (ProfilerEvent == null)
+            {
+                try
+                {
+                    ProfilerEvent = System.Threading.EventWaitHandle.OpenExisting("Local\\BenchmarkActive");
+                }
+                catch (System.Exception e)
+                {
+                    throw e;
+                }
+            }
+
+            ProfilerEvent.Reset();
+
             if (IsEnabled())
             {
                 if (RunId == null)
