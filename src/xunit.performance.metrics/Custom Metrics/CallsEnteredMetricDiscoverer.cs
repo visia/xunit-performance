@@ -45,7 +45,7 @@ namespace Microsoft.Xunit.Performance
         private class CallsEnteredEvaluator : PerformanceMetricEvaluator
         {
             private readonly PerformanceMetricEvaluationContext _context;
-            private static ListMetricInfo _objects = null;
+            private ListMetricInfo _objects = null;
             const int MINCALLS = 1;
 
             public CallsEnteredEvaluator(PerformanceMetricEvaluationContext context)

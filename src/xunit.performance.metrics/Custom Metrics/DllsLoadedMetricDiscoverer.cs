@@ -46,7 +46,7 @@ namespace Microsoft.Xunit.Performance
         private class DllsLoadedEvaluator : PerformanceMetricEvaluator
         {
             private readonly PerformanceMetricEvaluationContext _context;
-            private static ListMetricInfo _objects = null;
+            private ListMetricInfo _objects = null;
             private static Dictionary<string, string> _objectModuleDict = new Dictionary<string, string>();
             private static Dictionary<string, string> _className_classIDDict = new Dictionary<string, string>();
             private static Dictionary<string, string> _moduleNameDict = new Dictionary<string, string>();
