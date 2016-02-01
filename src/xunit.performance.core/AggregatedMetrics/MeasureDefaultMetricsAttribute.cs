@@ -5,7 +5,7 @@ namespace Microsoft.Xunit.Performance
 {
     /// <summary>
     /// An attribute that is applied to a method, class, or assembly, to indicate that the performance test framework
-    /// should collect and report the total number of app domain destructions
+    /// should collect and report the default list of metrics
     /// </summary>
     [PerformanceMetricDiscoverer("Microsoft.Xunit.Performance.AppDomainLoadMetricDiscoverer", "xunit.performance.metrics")]
     [PerformanceMetricDiscoverer("Microsoft.Xunit.Performance.AssemblyLoadMetricDiscoverer", "xunit.performance.metrics")]
