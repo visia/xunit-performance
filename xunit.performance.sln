@@ -63,6 +63,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.performance.consumpti
 		{517B6982-4F98-417F-9987-9C6B64EE6E1C} = {517B6982-4F98-417F-9987-9C6B64EE6E1C}
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.performance.run.cmdlet", "src\xunit.performance.run\xunit.performance.run.cmdlet.csproj", "{EF9F0BF0-D070-4505-AEEA-0AB205A3A1D0}"
+	ProjectSection(ProjectDependencies) = postProject
+		{F188C16F-C268-4674-88FE-04F9D608024F} = {F188C16F-C268-4674-88FE-04F9D608024F}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -113,6 +118,10 @@ Global
 		{663E1B15-8378-4A55-BCA2-85DF4FB059BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{663E1B15-8378-4A55-BCA2-85DF4FB059BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{663E1B15-8378-4A55-BCA2-85DF4FB059BB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EF9F0BF0-D070-4505-AEEA-0AB205A3A1D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF9F0BF0-D070-4505-AEEA-0AB205A3A1D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF9F0BF0-D070-4505-AEEA-0AB205A3A1D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF9F0BF0-D070-4505-AEEA-0AB205A3A1D0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -135,5 +144,6 @@ Global
 		{517B6982-4F98-417F-9987-9C6B64EE6E1C} = {F5C85B5B-B786-454C-BB24-822826881735}
 		{55595E8A-EB17-41B4-82BD-BF26FDAD618B} = {F5C85B5B-B786-454C-BB24-822826881735}
 		{663E1B15-8378-4A55-BCA2-85DF4FB059BB} = {FFA0DF6D-DF10-4E29-97B3-B78F66990325}
+		{EF9F0BF0-D070-4505-AEEA-0AB205A3A1D0} = {F5C85B5B-B786-454C-BB24-822826881735}
 	EndGlobalSection
 EndGlobal

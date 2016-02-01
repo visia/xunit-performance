@@ -19,7 +19,7 @@ namespace Microsoft.Xunit.Performance
     public abstract class ProgramCore
     {
 
-        private bool _nologo = false;
+        internal bool _nologo = false;
         private bool _verbose = false;
 
         protected abstract IPerformanceMetricLogger GetPerformanceMetricLogger(XunitPerformanceProject project);
@@ -61,7 +61,7 @@ namespace Microsoft.Xunit.Performance
             return 0;
         }
 
-        private void RunTests(XunitPerformanceProject project)
+        internal void RunTests(XunitPerformanceProject project)
         {
             string xmlPath = Path.Combine(project.OutputDir, project.OutputBaseFileName + ".xml");
 
@@ -142,6 +142,18 @@ namespace Microsoft.Xunit.Performance
             startInfo.Environment["XUNIT_PERFORMANCE_MAX_TOTAL_MILLISECONDS"] = "1000";
             startInfo.Environment["COMPLUS_gcConcurrent"] = "0";
             startInfo.Environment["COMPLUS_gcServer"] = "0";
+
+            if (project.UseLocalUser)
+            {
+                startInfo.Domain = project.runComputer;
+                startInfo.UserName = project.runCredentialsUsername;
+                startInfo.Password = project.runCredentialsPassword;
+                startInfo.LoadUserProfile = true;
+                foreach (var envvar in project.runEnvVars)
+                {
+                    startInfo.Environment[envvar.Key.ToString()] = envvar.Value.ToString();
+                }
+            }
 
             var logger = GetPerformanceMetricLogger(project);
             using (logger.StartLogging(startInfo))
@@ -256,7 +268,7 @@ Arguments: {startInfo.Arguments}");
 
 
 
-        private XunitPerformanceProject ParseCommandLine(string[] args)
+        internal XunitPerformanceProject ParseCommandLine(string[] args)
         {
             var arguments = new Stack<string>();
             for (var i = args.Length - 1; i >= 0; i--)
@@ -499,12 +511,12 @@ Arguments: {startInfo.Arguments}");
             }
         }
 
-        private static void ReportExceptionToStderr(Exception ex)
+        internal static void ReportExceptionToStderr(Exception ex)
         {
             ReportException(ex, Console.Error);
         }
 
-        private void PrintHeader()
+        internal void PrintHeader()
         {
             Console.WriteLine($"xunit.performance Console Runner ({IntPtr.Size * 8}-bit .NET {GetRuntimeVersion()})");
             Console.WriteLine("Copyright (C) 2015 Microsoft Corporation.");
@@ -521,7 +533,7 @@ Arguments: {startInfo.Arguments}");
             }
         }
 
-        private static void PrintUsage()
+        internal static void PrintUsage()
         {
             Console.WriteLine(@"usage: xunit.performance.run <assemblyFile> [options]
 

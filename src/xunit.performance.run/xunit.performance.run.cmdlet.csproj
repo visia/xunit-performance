@@ -4,8 +4,8 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{F188C16F-C268-4674-88FE-04F9D608024F}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <ProjectGuid>{EF9F0BF0-D070-4505-AEEA-0AB205A3A1D0}</ProjectGuid>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Microsoft.Xunit.Performance</RootNamespace>
     <AssemblyName>xunit.performance.run</AssemblyName>
@@ -43,7 +43,11 @@
   <ItemGroup>
     <Reference Include="Microsoft.Diagnostics.Tracing.TraceEvent, Version=1.0.39.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Microsoft.Diagnostics.Tracing.TraceEvent.1.0.39\lib\net40\Microsoft.Diagnostics.Tracing.TraceEvent.dll</HintPath>
-      <Private>True</Private>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\PublicAssemblies\Microsoft.VisualStudio.QualityTools.UnitTestFramework.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -57,15 +61,15 @@
     <Reference Include="System.Xml" />
     <Reference Include="xunit.abstractions, Version=2.0.0.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
       <HintPath>..\..\packages\xunit.abstractions.2.0.0\lib\net35\xunit.abstractions.dll</HintPath>
-      <Private>True</Private>
+      <Private>False</Private>
     </Reference>
     <Reference Include="xunit.core, Version=2.1.0.3179, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
       <HintPath>..\..\packages\xunit.extensibility.core.2.1.0\lib\dotnet\xunit.core.dll</HintPath>
-      <Private>True</Private>
+      <Private>False</Private>
     </Reference>
     <Reference Include="xunit.runner.utility.desktop, Version=2.1.0.3179, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
       <HintPath>..\..\packages\xunit.runner.utility.2.1.0\lib\net35\xunit.runner.utility.desktop.dll</HintPath>
-      <Private>True</Private>
+      <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -75,8 +79,10 @@
     <Compile Include="..\xunit.performance.consumption\FormatXML.cs">
       <Link>FormatXML.cs</Link>
     </Compile>
+    <Compile Include="CmdletTests.cs" />
     <Compile Include="DictionaryExtensions.cs" />
     <Compile Include="EtwPerformanceMetricLogger.cs" />
+    <Compile Include="InvokePerfTestsCmdlet.cs" />
     <Compile Include="IPerformanceMetricLogger.cs" />
     <Compile Include="Microsoft-Xunit-Benchmark.manifest.cs" />
     <Compile Include="EtwPerformanceMetricEvaluationContext.cs" />
@@ -98,18 +104,22 @@
     <ProjectReference Include="..\ProcDomain\ProcDomain.csproj">
       <Project>{905abe0d-b057-4218-a56b-9c25a9dca6e1}</Project>
       <Name>ProcDomain</Name>
+      <Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\xunit.performance.core\xunit.performance.core.csproj">
       <Project>{d8820889-cc47-42b6-bac1-01d16d241ece}</Project>
       <Name>xunit.performance.core</Name>
+      <Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\xunit.performance.logger\xunit.performance.logger.csproj">
       <Project>{b7b0a4d7-ef9d-4ced-954a-f6e69e30ce27}</Project>
       <Name>xunit.performance.logger</Name>
+      <Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\xunit.performance.metrics\xunit.performance.metrics.csproj">
       <Project>{517b6982-4f98-417f-9987-9c6b64ee6e1c}</Project>
       <Name>xunit.performance.metrics</Name>
+      <Private>False</Private>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

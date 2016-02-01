@@ -234,7 +234,7 @@ namespace Microsoft.ProcessDomain
         {
             CrossDomainInvokeResponse childMessage = null;
 
-            //while the child process is aliave and we continue to get messages
+            //while the child process is alive and we continue to get messages
             while (!_process.HasExited && (childMessage = await ReadNextResponseAsync()) != null)
             {
                 TaskCompletionSource<CrossDomainInvokeResponse> completionSource;

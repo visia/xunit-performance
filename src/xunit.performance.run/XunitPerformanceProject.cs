@@ -38,7 +38,7 @@ namespace Microsoft.Xunit.Performance
             }
             set
             {
-                _outputDir = System.IO.Path.Combine(value, OutputBaseFileName);
+                _outputDir = value;
             }
         }
 
@@ -53,5 +53,40 @@ namespace Microsoft.Xunit.Performance
                 _outputBaseFileName = value;
             }
         }
+
+        private bool _useLocalUser = false;
+        /// <summary>
+        /// Whether xunit.console.exe is run on a different user account
+        /// </summary>
+        public bool UseLocalUser {
+            get
+            {
+                return _useLocalUser;
+            }
+            set
+            {
+                _useLocalUser = value;
+            }
+        }
+
+        /// <summary>
+        /// Computer to run this xunit.console.exe on
+        /// </summary>
+        public string runComputer { get; set; }
+
+        /// <summary>
+        /// User to run xunit.console.exe on (format: Environment.MachineName\LocalAccount.Username)
+        /// </summary>
+        public string runCredentialsUsername { get; set; } 
+
+        /// <summary>
+        /// Secure string password of user account
+        /// </summary>
+        public System.Security.SecureString runCredentialsPassword { get; set; }
+
+        /// <summary>
+        /// Environment variables to set for xunit.console.exe
+        /// </summary>
+        public System.Collections.DictionaryEntry[] runEnvVars { get; set; }
     }
 }
