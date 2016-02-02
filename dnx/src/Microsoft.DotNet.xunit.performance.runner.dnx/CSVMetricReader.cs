@@ -13,7 +13,7 @@ namespace Microsoft.Xunit.Performance
 {
     internal class CSVMetricReader : IPerformanceMetricReader
     {
-        private Dictionary<string, List<Dictionary<string, double>>> _values = new Dictionary<string, List<Dictionary<string, double>>>();
+        private Dictionary<string, List<Dictionary<string, Object>>> _values = new Dictionary<string, List<Dictionary<string, Object>>>();
 
         public CSVMetricReader(string csvPath)
         {
@@ -40,7 +40,7 @@ namespace Microsoft.Xunit.Performance
                         while (values.Count < iteration)
                             values.Add(null);
                         var duration = timestamp - currentIterationStart;
-                        values.Add(new Dictionary<string, double>() { { "Duration", duration } });
+                        values.Add(new Dictionary<string, Object>() { { "Duration", duration } });
                         currentIterationStart = double.NaN;
                         break;
                 }
@@ -54,7 +54,7 @@ namespace Microsoft.Xunit.Performance
             yield return DurationMetric.Instance;
         }
 
-        public List<Dictionary<string, double>> GetValues(string testCase)
+        public List<Dictionary<string, Object>> GetValues(string testCase)
         {
             return _values.GetOrDefault(testCase);
         }
