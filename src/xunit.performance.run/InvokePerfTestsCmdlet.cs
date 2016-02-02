@@ -58,10 +58,11 @@ namespace Microsoft.Xunit.Performance
             try
             {
                 var project = p.ParseCommandLine(args);
-                string UserName = RunCredential.UserName.Substring(RunComputer.Length + 1);
+                string UserName;
 
                 if (UseLocalUser)
                 {
+                    UserName = RunCredential.UserName.Substring(RunComputer.Length + 1);
                     project.UseLocalUser = true;
                     project.runComputer = RunComputer;
                     project.runCredentialsUsername = UserName;
@@ -84,7 +85,7 @@ namespace Microsoft.Xunit.Performance
                     
                 }
 
-                WriteObject(project.OutputBaseFileName + ".xml");
+                WriteObject(Path.Combine(project.OutputDir, project.OutputBaseFileName + ".xml"));
             }
             catch (Exception ex)
             {
