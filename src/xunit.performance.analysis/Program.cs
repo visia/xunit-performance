@@ -271,11 +271,17 @@ namespace Microsoft.Xunit.Performance.Analysis
                     writer.WriteLine($"<h1>Indivdual results: {run.Key}</h1>");
 
                     writer.WriteLine($"<table>");
-                    writer.WriteLine($"<tr><th>Test</th><th>Unit</th><th>Min</th><th>Mean</th><th>Max</th><th>Margin</th><th>StdDev</th></tr>");
+                    writer.WriteLine($"<tr><th>Test</th><th>Metric</th><th>Unit</th><th>Min</th><th>Mean</th><th>Max</th><th>Margin</th><th>StdDev</th></tr>");
                     foreach (var test in run.Value)
                     {
                         var stats = test.Value.Stats[DurationMetricName];
-                        writer.WriteLine($"<tr><td>{test.Value.TestName}</td><td>ms</td><td>{stats.Minimum.ToString("G3")}</td><td>{stats.Mean.ToString("G3")}</td><td>{stats.Maximum.ToString("G3")}</td><td>{stats.MarginOfError(ErrorConfidence).ToString("P1")}</td><td>{stats.StandardDeviation.ToString("G3")}</td></tr>");
+                        writer.WriteLine($"<tr><td>{test.Value.TestName}</td><td>{DurationMetricName}</td><td>{test.Value.Iterations.First().MetricUnits[DurationMetricName]}</td><td>{stats.Minimum.ToString("F3")}</td><td>{stats.Mean.ToString("F3")}</td><td>{stats.Maximum.ToString("F3")}</td><td>{stats.MarginOfError(ErrorConfidence).ToString("P1")}</td><td>{stats.StandardDeviation.ToString("F3")}</td></tr>");
+                        foreach (var stat in test.Value.Stats)
+                        {
+                            if (stat.Key == DurationMetricName)
+                                continue;
+                            writer.WriteLine($"<tr><td></td><td>{stat.Key}</td><td>{test.Value.Iterations.First().MetricUnits[stat.Key]}</td><td>{stat.Value.Minimum.ToString("F3")}</td><td>{stat.Value.Mean.ToString("F3")}</td><td>{stat.Value.Maximum.ToString("F3")}</td><td>{stat.Value.MarginOfError(ErrorConfidence).ToString("P1")}</td><td>{stat.Value.StandardDeviation.ToString("F3")}</td></tr>");
+                        }
                     }
                     writer.WriteLine($"</table>");
                 }
@@ -330,6 +336,7 @@ namespace Microsoft.Xunit.Performance.Analysis
             public string TestName;
             public int TestIteration;
             public Dictionary<string, double> MetricValues = new Dictionary<string, double>();
+            public Dictionary<string, string> MetricUnits = new Dictionary<string, string>();
         }
 
         private class TestResultComparison
@@ -392,6 +399,13 @@ namespace Microsoft.Xunit.Performance.Analysis
                         var metricVal = double.Parse(metricAttr.Value);
 
                         result.MetricValues.Add(metricName, metricVal);
+                    }
+
+                    foreach (var metric in perfElem.Descendants("metrics").Descendants())
+                    {
+                        var metricName = metric.Name.LocalName;
+                        var metricUnits = metric.Attribute("unit").Value;
+                        result.MetricUnits.Add(metricName, metricUnits);
                     }
 
                     yield return result;
