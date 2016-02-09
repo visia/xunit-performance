@@ -247,6 +247,28 @@ namespace Microsoft.Xunit.Performance.Analysis
             return xmlDoc;
         }
 
+        private static Dictionary<string, int> findFailedTests(IGrouping<string, TestResultComparison> comparison, bool includeDuration = true)
+        {
+            var ret = new Dictionary<string, int>();
+            foreach(var test in from c in comparison select c)
+            {
+                foreach (var metric in test.MetricComparisons.Keys)
+                {
+                    if (metric == DurationMetricName && !includeDuration)
+                        continue;
+
+                    if (test.MetricComparisons[metric].Passed == false)
+                    {
+                        if (!ret.ContainsKey(test.TestName))
+                            ret.Add(test.TestName, 1);
+                        else
+                            ret[test.TestName]++;
+                    }
+                }
+            }
+            return ret;
+        }
+
         private static void WriteTestResultsHtml(Dictionary<string, Dictionary<string, TestResult>> testResults, List<TestResultComparison> comparisonResults, string htmlOutputPath)
         {
             using (var writer = new StreamWriter(htmlOutputPath, false, Encoding.UTF8))
@@ -257,17 +279,38 @@ namespace Microsoft.Xunit.Performance.Analysis
                 {
                     writer.WriteLine($"<h1>{comparison.Key}</h1>");
                     writer.WriteLine("<table>");
-                    foreach (var test in from c in comparison orderby c.MetricComparisons[DurationMetricName].SortChange descending select c)
+                    
+                    var failedTests = findFailedTests(comparison, false);
+                    if (failedTests.Count > 0)
                     {
-                        var passed = test.MetricComparisons[DurationMetricName].Passed;
-                        string color;
-                        if (!passed.HasValue)
-                            color = "black";
-                        else if (passed.Value)
-                            color = "green";
-                        else
-                            color = "red"; 
-                        writer.WriteLine($"<tr><td>{test.TestName}</td><td><font  color={color}>{test.MetricComparisons[DurationMetricName].PercentChange.ToString("+##.#%;-##.#%")}</font></td><td>+/-{test.MetricComparisons[DurationMetricName].PercentChangeError.ToString("P1")}</td></tr>");
+                        writer.WriteLine($"<tr><th><font  color=red>Failed Tests</font></th><th><font  color=red># Failed Metrics</font></th></tr>");
+                        foreach (var test in failedTests)
+                        {
+                            writer.WriteLine($"<tr><td><font  color=red>{test.Key}</font></td><td><font  color=red>{test.Value}</font></td></tr>");
+                        }
+                        writer.WriteLine("</table>");
+                    }
+
+                    writer.WriteLine("<table>");
+                    writer.WriteLine($"<tr><th>Test</th><th>Metric</th><th>Baseline Mean</th><th>Comparison Mean</th><th>Percent Change</th><th>Error</th></tr>");
+
+                    foreach (var test in from c in comparison select c)
+                    {
+                        foreach (var metric in test.MetricComparisons.Keys)
+                        {
+                            var passed = test.MetricComparisons[metric].Passed;
+                            string color;
+                            if (!passed.HasValue)
+                                color = "black";
+                            else if (passed.Value)
+                                color = "green";
+                            else
+                                color = "red";
+                            if(metric == DurationMetricName)
+                                writer.WriteLine($"<tr><td>{test.TestName}</td><td>{metric}</td><td>{test.MetricComparisons[metric].BaselineMean.ToString("F3")}</td><td>{test.MetricComparisons[metric].ComparisonMean.ToString("F3")}</td><td><font  color={color}>{test.MetricComparisons[metric].PercentChange.ToString("+##.#%;-##.#%")}</font></td><td>+/-{test.MetricComparisons[metric].PercentChangeError.ToString("P1")}</td></tr>");
+                            else
+                                writer.WriteLine($"<tr><td></td><td>{metric}</td><td>{test.MetricComparisons[metric].BaselineMean.ToString("F3")}</td><td>{test.MetricComparisons[metric].ComparisonMean.ToString("F3")}</td><td><font  color={color}>{test.MetricComparisons[metric].PercentChange.ToString("+##.#%;-##.#%")}</font></td><td>+/-{test.MetricComparisons[metric].PercentChangeError.ToString("P1")}</td></tr>");
+                        }
                     }
                     writer.WriteLine("</table>");
                 }
@@ -282,13 +325,14 @@ namespace Microsoft.Xunit.Performance.Analysis
                     writer.WriteLine($"<tr><th>Test</th><th>Metric</th><th>Unit</th><th>Min</th><th>Mean</th><th>Max</th><th>Margin</th><th>StdDev</th></tr>");
                     foreach (var test in run.Value)
                     {
-                        var stats = test.Value.Stats[DurationMetricName];
-                        writer.WriteLine($"<tr><td>{test.Value.TestName}</td><td>{DurationMetricName}</td><td>{test.Value.Iterations.First().MetricUnits[DurationMetricName]}</td><td>{stats.Minimum.ToString("F3")}</td><td>{stats.Mean.ToString("F3")}</td><td>{stats.Maximum.ToString("F3")}</td><td>{stats.MarginOfError(ErrorConfidence).ToString("P1")}</td><td>{stats.StandardDeviation.ToString("F3")}</td></tr>");
+                        //var stats = test.Value.Stats[DurationMetricName];
+                        //writer.WriteLine($"<tr><td>{test.Value.TestName}</td><td>{DurationMetricName}</td><td>{test.Value.Iterations.First().MetricUnits[DurationMetricName]}</td><td>{stats.Minimum.ToString("F3")}</td><td>{stats.Mean.ToString("F3")}</td><td>{stats.Maximum.ToString("F3")}</td><td>{stats.MarginOfError(ErrorConfidence).ToString("P1")}</td><td>{stats.StandardDeviation.ToString("F3")}</td></tr>");
                         foreach (var stat in test.Value.Stats)
                         {
-                            if (stat.Key == DurationMetricName)
-                                continue;
-                            writer.WriteLine($"<tr><td></td><td>{stat.Key}</td><td>{test.Value.Iterations.First().MetricUnits[stat.Key]}</td><td>{stat.Value.Minimum.ToString("F3")}</td><td>{stat.Value.Mean.ToString("F3")}</td><td>{stat.Value.Maximum.ToString("F3")}</td><td>{stat.Value.MarginOfError(ErrorConfidence).ToString("P1")}</td><td>{stat.Value.StandardDeviation.ToString("F3")}</td></tr>");
+                            if (stat.Key == DurationMetricName) // should always be first
+                                writer.WriteLine($"<tr><td>{test.Value.TestName}</td><td>{DurationMetricName}</td><td>{test.Value.Iterations.First().MetricUnits[DurationMetricName]}</td><td>{stat.Value.Minimum.ToString("F3")}</td><td>{stat.Value.Mean.ToString("F3")}</td><td>{stat.Value.Maximum.ToString("F3")}</td><td>{stat.Value.MarginOfError(ErrorConfidence).ToString("P1")}</td><td>{stat.Value.StandardDeviation.ToString("F3")}</td></tr>");
+                            else
+                                writer.WriteLine($"<tr><td></td><td>{stat.Key}</td><td>{test.Value.Iterations.First().MetricUnits[stat.Key]}</td><td>{stat.Value.Minimum.ToString("F3")}</td><td>{stat.Value.Mean.ToString("F3")}</td><td>{stat.Value.Maximum.ToString("F3")}</td><td>{stat.Value.MarginOfError(ErrorConfidence).ToString("P1")}</td><td>{stat.Value.StandardDeviation.ToString("F3")}</td></tr>");
                         }
                     }
                     writer.WriteLine($"</table>");
@@ -375,6 +419,8 @@ namespace Microsoft.Xunit.Performance.Analysis
                     yield return iteration.MetricValues[MetricName];
                 }
             }
+            public double BaselineMean { get { return parent.BaselineResult.Stats[MetricName].Mean; } }
+            public double ComparisonMean { get { return parent.ComparisonResult.Stats[MetricName].Mean; } }
             public double PercentChange;
             public double PercentChangeError;
             public double SortChange => (PercentChange > 0) ? Math.Max(PercentChange - PercentChangeError, 0) : Math.Min(PercentChange + PercentChangeError, 0);
