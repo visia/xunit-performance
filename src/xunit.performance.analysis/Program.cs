@@ -135,27 +135,35 @@ namespace Microsoft.Xunit.Performance.Analysis
                 {
                     var baselineTest = baseline[comparisonTest.TestName];
 
-                    // Compute the standard error in the difference
-                    var baselineCount = baselineTest.Iterations.Count;
-                    var baselineSum = baselineTest.Iterations.Sum(iteration => iteration.MetricValues[DurationMetricName]);
-                    var baselineSumSquared = baselineSum * baselineSum;
-                    var baselineSumOfSquares = baselineTest.Iterations.Sum(iteration => iteration.MetricValues[DurationMetricName] * iteration.MetricValues[DurationMetricName]);
-
-                    var comparisonCount = comparisonTest.Iterations.Count;
-                    var comparisonSum = comparisonTest.Iterations.Sum(iteration => iteration.MetricValues[DurationMetricName]);
-                    var comparisonSumSquared = comparisonSum * comparisonSum;
-                    var comparisonSumOfSquares = comparisonTest.Iterations.Sum(iteration => iteration.MetricValues[DurationMetricName] * iteration.MetricValues[DurationMetricName]);
-
-                    var stdErrorDiff = Math.Sqrt((baselineSumOfSquares - (baselineSumSquared / baselineCount) + comparisonSumOfSquares - (comparisonSumSquared / comparisonCount)) * (1.0 / baselineCount + 1.0 / comparisonCount) / (baselineCount + comparisonCount - 1));
-                    var interval = stdErrorDiff * MathNet.Numerics.ExcelFunctions.TInv(1.0 - ErrorConfidence, baselineCount + comparisonCount - 2);
-
                     var comparisonResult = new TestResultComparison();
                     comparisonResult.BaselineResult = baselineTest;
                     comparisonResult.ComparisonResult = comparisonTest;
                     comparisonResult.TestName = comparisonTest.TestName;
-                    comparisonResult.PercentChange = (comparisonTest.Stats[DurationMetricName].Mean - baselineTest.Stats[DurationMetricName].Mean) / baselineTest.Stats[DurationMetricName].Mean;
-                    comparisonResult.PercentChangeError = interval / baselineTest.Stats[DurationMetricName].Mean;
+                    var MetricComparisons = new Dictionary<string, MetricComparison>();
 
+                    foreach(var metric in comparisonTest.Iterations.First().MetricValues.Keys)
+                    {
+                        var metricComparison = new MetricComparison(comparisonResult, metric);
+                        // Compute the standard error in the difference
+                        var baselineCount = baselineTest.Iterations.Count;
+                        var baselineSum = baselineTest.Iterations.Sum(iteration => iteration.MetricValues[metric]);
+                        var baselineSumSquared = baselineSum * baselineSum;
+                        var baselineSumOfSquares = baselineTest.Iterations.Sum(iteration => iteration.MetricValues[metric] * iteration.MetricValues[metric]);
+
+                        var comparisonCount = comparisonTest.Iterations.Count;
+                        var comparisonSum = comparisonTest.Iterations.Sum(iteration => iteration.MetricValues[metric]);
+                        var comparisonSumSquared = comparisonSum * comparisonSum;
+                        var comparisonSumOfSquares = comparisonTest.Iterations.Sum(iteration => iteration.MetricValues[metric] * iteration.MetricValues[metric]);
+
+                        var stdErrorDiff = Math.Sqrt((baselineSumOfSquares - (baselineSumSquared / baselineCount) + comparisonSumOfSquares - (comparisonSumSquared / comparisonCount)) * (1.0 / baselineCount + 1.0 / comparisonCount) / (baselineCount + comparisonCount - 1));
+                        var interval = stdErrorDiff * MathNet.Numerics.ExcelFunctions.TInv(1.0 - ErrorConfidence, baselineCount + comparisonCount - 2);
+
+                        metricComparison.PercentChange = (comparisonTest.Stats[metric].Mean - baselineTest.Stats[metric].Mean) / baselineTest.Stats[metric].Mean;
+                        metricComparison.PercentChangeError = interval / baselineTest.Stats[DurationMetricName].Mean;
+                        MetricComparisons.Add(metric, metricComparison);
+                    }
+
+                    comparisonResult.MetricComparisons = MetricComparisons;
                     comparisonResults.Add(comparisonResult);
                 }
             }
@@ -232,11 +240,33 @@ namespace Microsoft.Xunit.Performance.Analysis
 
                 comparisonElem.Add(
                     new XElement("duration",
-                        new XAttribute("changeRatio", comparison.PercentChange.ToString("G3")),
-                        new XAttribute("changeRatioError", comparison.PercentChangeError.ToString("G3"))));
+                        new XAttribute("changeRatio", comparison.MetricComparisons[DurationMetricName].PercentChange.ToString("G3")),
+                        new XAttribute("changeRatioError", comparison.MetricComparisons[DurationMetricName].PercentChangeError.ToString("G3")))); 
             }
 
             return xmlDoc;
+        }
+
+        private static Dictionary<string, int> findFailedTests(IGrouping<string, TestResultComparison> comparison, bool includeDuration = true)
+        {
+            var ret = new Dictionary<string, int>();
+            foreach(var test in from c in comparison select c)
+            {
+                foreach (var metric in test.MetricComparisons.Keys)
+                {
+                    if (metric == DurationMetricName && !includeDuration)
+                        continue;
+
+                    if (test.MetricComparisons[metric].Passed == false)
+                    {
+                        if (!ret.ContainsKey(test.TestName))
+                            ret.Add(test.TestName, 1);
+                        else
+                            ret[test.TestName]++;
+                    }
+                }
+            }
+            return ret;
         }
 
         private static void WriteTestResultsHtml(Dictionary<string, Dictionary<string, TestResult>> testResults, List<TestResultComparison> comparisonResults, string htmlOutputPath)
@@ -249,17 +279,38 @@ namespace Microsoft.Xunit.Performance.Analysis
                 {
                     writer.WriteLine($"<h1>{comparison.Key}</h1>");
                     writer.WriteLine("<table>");
-                    foreach (var test in from c in comparison orderby c.SortChange descending select c)
+                    
+                    var failedTests = findFailedTests(comparison, false);
+                    if (failedTests.Count > 0)
                     {
-                        var passed = test.Passed;
-                        string color;
-                        if (!passed.HasValue)
-                            color = "black";
-                        else if (passed.Value)
-                            color = "green";
-                        else
-                            color = "red";
-                        writer.WriteLine($"<tr><td>{test.TestName}</td><td><font  color={color}>{test.PercentChange.ToString("+##.#%;-##.#%")}</font></td><td>+/-{test.PercentChangeError.ToString("P1")}</td></tr>");
+                        writer.WriteLine($"<tr><th><font  color=red>Failed Tests</font></th><th><font  color=red># Failed Metrics</font></th></tr>");
+                        foreach (var test in failedTests)
+                        {
+                            writer.WriteLine($"<tr><td><font  color=red>{test.Key}</font></td><td><font  color=red>{test.Value}</font></td></tr>");
+                        }
+                        writer.WriteLine("</table>");
+                    }
+
+                    writer.WriteLine("<table>");
+                    writer.WriteLine($"<tr><th>Test</th><th>Metric</th><th>Baseline Mean</th><th>Comparison Mean</th><th>Percent Change</th><th>Error</th></tr>");
+
+                    foreach (var test in from c in comparison select c)
+                    {
+                        foreach (var metric in test.MetricComparisons.Keys)
+                        {
+                            var passed = test.MetricComparisons[metric].Passed;
+                            string color;
+                            if (!passed.HasValue)
+                                color = "black";
+                            else if (passed.Value)
+                                color = "green";
+                            else
+                                color = "red";
+                            if(metric == DurationMetricName)
+                                writer.WriteLine($"<tr><td>{test.TestName}</td><td>{metric}</td><td>{test.MetricComparisons[metric].BaselineMean.ToString("F3")}</td><td>{test.MetricComparisons[metric].ComparisonMean.ToString("F3")}</td><td><font  color={color}>{test.MetricComparisons[metric].PercentChange.ToString("+##.#%;-##.#%")}</font></td><td>+/-{test.MetricComparisons[metric].PercentChangeError.ToString("P1")}</td></tr>");
+                            else
+                                writer.WriteLine($"<tr><td></td><td>{metric}</td><td>{test.MetricComparisons[metric].BaselineMean.ToString("F3")}</td><td>{test.MetricComparisons[metric].ComparisonMean.ToString("F3")}</td><td><font  color={color}>{test.MetricComparisons[metric].PercentChange.ToString("+##.#%;-##.#%")}</font></td><td>+/-{test.MetricComparisons[metric].PercentChangeError.ToString("P1")}</td></tr>");
+                        }
                     }
                     writer.WriteLine("</table>");
                 }
@@ -271,11 +322,18 @@ namespace Microsoft.Xunit.Performance.Analysis
                     writer.WriteLine($"<h1>Indivdual results: {run.Key}</h1>");
 
                     writer.WriteLine($"<table>");
-                    writer.WriteLine($"<tr><th>Test</th><th>Unit</th><th>Min</th><th>Mean</th><th>Max</th><th>Margin</th><th>StdDev</th></tr>");
+                    writer.WriteLine($"<tr><th>Test</th><th>Metric</th><th>Unit</th><th>Min</th><th>Mean</th><th>Max</th><th>Margin</th><th>StdDev</th></tr>");
                     foreach (var test in run.Value)
                     {
-                        var stats = test.Value.Stats[DurationMetricName];
-                        writer.WriteLine($"<tr><td>{test.Value.TestName}</td><td>ms</td><td>{stats.Minimum.ToString("G3")}</td><td>{stats.Mean.ToString("G3")}</td><td>{stats.Maximum.ToString("G3")}</td><td>{stats.MarginOfError(ErrorConfidence).ToString("P1")}</td><td>{stats.StandardDeviation.ToString("G3")}</td></tr>");
+                        //var stats = test.Value.Stats[DurationMetricName];
+                        //writer.WriteLine($"<tr><td>{test.Value.TestName}</td><td>{DurationMetricName}</td><td>{test.Value.Iterations.First().MetricUnits[DurationMetricName]}</td><td>{stats.Minimum.ToString("F3")}</td><td>{stats.Mean.ToString("F3")}</td><td>{stats.Maximum.ToString("F3")}</td><td>{stats.MarginOfError(ErrorConfidence).ToString("P1")}</td><td>{stats.StandardDeviation.ToString("F3")}</td></tr>");
+                        foreach (var stat in test.Value.Stats)
+                        {
+                            if (stat.Key == DurationMetricName) // should always be first
+                                writer.WriteLine($"<tr><td>{test.Value.TestName}</td><td>{DurationMetricName}</td><td>{test.Value.Iterations.First().MetricUnits[DurationMetricName]}</td><td>{stat.Value.Minimum.ToString("F3")}</td><td>{stat.Value.Mean.ToString("F3")}</td><td>{stat.Value.Maximum.ToString("F3")}</td><td>{stat.Value.MarginOfError(ErrorConfidence).ToString("P1")}</td><td>{stat.Value.StandardDeviation.ToString("F3")}</td></tr>");
+                            else
+                                writer.WriteLine($"<tr><td></td><td>{stat.Key}</td><td>{test.Value.Iterations.First().MetricUnits[stat.Key]}</td><td>{stat.Value.Minimum.ToString("F3")}</td><td>{stat.Value.Mean.ToString("F3")}</td><td>{stat.Value.Maximum.ToString("F3")}</td><td>{stat.Value.MarginOfError(ErrorConfidence).ToString("P1")}</td><td>{stat.Value.StandardDeviation.ToString("F3")}</td></tr>");
+                        }
                     }
                     writer.WriteLine($"</table>");
                 }
@@ -330,6 +388,7 @@ namespace Microsoft.Xunit.Performance.Analysis
             public string TestName;
             public int TestIteration;
             public Dictionary<string, double> MetricValues = new Dictionary<string, double>();
+            public Dictionary<string, string> MetricUnits = new Dictionary<string, string>();
         }
 
         private class TestResultComparison
@@ -337,6 +396,31 @@ namespace Microsoft.Xunit.Performance.Analysis
             public string TestName;
             public TestResult BaselineResult;
             public TestResult ComparisonResult;
+
+            public Dictionary<string, MetricComparison> MetricComparisons;
+        }
+
+        private class MetricComparison
+        {
+            public MetricComparison(TestResultComparison parent, string metricName) { this.parent = parent; this.MetricName = metricName; }
+            private TestResultComparison parent;
+            public string MetricName;
+            public IEnumerable<double> BaselineValues()
+            {
+                foreach(var iteration in parent.BaselineResult.Iterations)
+                {
+                    yield return iteration.MetricValues[MetricName];
+                }
+            }
+            public IEnumerable<double> ComparisonValues()
+            {
+                foreach(var iteration in parent.ComparisonResult.Iterations)
+                {
+                    yield return iteration.MetricValues[MetricName];
+                }
+            }
+            public double BaselineMean { get { return parent.BaselineResult.Stats[MetricName].Mean; } }
+            public double ComparisonMean { get { return parent.ComparisonResult.Stats[MetricName].Mean; } }
             public double PercentChange;
             public double PercentChangeError;
             public double SortChange => (PercentChange > 0) ? Math.Max(PercentChange - PercentChangeError, 0) : Math.Min(PercentChange + PercentChangeError, 0);
@@ -392,6 +476,13 @@ namespace Microsoft.Xunit.Performance.Analysis
                         var metricVal = double.Parse(metricAttr.Value);
 
                         result.MetricValues.Add(metricName, metricVal);
+                    }
+
+                    foreach (var metric in perfElem.Descendants("metrics").Descendants())
+                    {
+                        var metricName = metric.Name.LocalName;
+                        var metricUnits = metric.Attribute("unit").Value;
+                        result.MetricUnits.Add(metricName, metricUnits);
                     }
 
                     yield return result;
