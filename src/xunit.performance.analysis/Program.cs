@@ -177,6 +177,9 @@ namespace Microsoft.Xunit.Performance.Analysis
 
             foreach (var iteration in allIterations)
             {
+                if (iteration.TestIteration == 0)
+                    continue; // we want to ignore the results from iteration 0
+
                 Dictionary<string, TestResult> runResults;
                 if (!testResults.TryGetValue(iteration.RunId, out runResults))
                     testResults[iteration.RunId] = runResults = new Dictionary<string, TestResult>();
@@ -429,7 +432,11 @@ namespace Microsoft.Xunit.Performance.Analysis
                 get
                 {
                     if (PercentChange > 0 && PercentChange > PercentChangeError)
+                    {
+                        if (BaselineMean == 0 && ComparisonMean < 1) // there's sometimes nondeterministic 0/1 behavior... ignore these
+                            return null;
                         return false;
+                    }
                     if (PercentChange < 0 && PercentChange < -PercentChangeError)
                         return true;
                     else
