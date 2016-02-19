@@ -55,8 +55,7 @@
     <Compile Include="..\common\GlobalAssemblyInfo.cs">
       <Link>Properties\GlobalAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="MathExtensions.cs" />
-    <Compile Include="Microsoft-Xunit-Benchmark.manifest.cs" />
+    <Compile Include="AnalysisHelpers.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
