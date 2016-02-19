@@ -2,13 +2,10 @@
 using MathNet.Numerics.Statistics;
 using System;
 using System.Collections.Generic;
-using Microsoft.Diagnostics.Tracing;
-using Microsoft.Diagnostics.Tracing.Parsers;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
-using System.Runtime.Serialization;
 
 namespace Microsoft.Xunit.Performance.Analysis
 {
@@ -42,7 +39,7 @@ namespace Microsoft.Xunit.Performance.Analysis
             var comparisonResults = DoComparisons(allComparisonIds, testResults);
 
             if (xmlOutputPath != null)
-                WriteTestResultsXml(testResults, comparisonResults).Save(xmlOutputPath);
+                WriteTestResultsXml(testResults, comparisonResults).Save(fileNameToStream(xmlOutputPath));
 
             if (htmlOutputPath != null)
                 WriteTestResultsHtml(testResults, comparisonResults, htmlOutputPath);
@@ -131,6 +128,8 @@ namespace Microsoft.Xunit.Performance.Analysis
 
                 result.isBaseline = iteration.isBaseline;
 
+                result.DegradeBars = iteration.DegradeBars;
+
                 result.Iterations.Add(iteration);
             }
 
@@ -205,7 +204,7 @@ namespace Microsoft.Xunit.Performance.Analysis
 
         private static void WriteTestResultsHtml(Dictionary<string, Dictionary<string, TestResult>> testResults, List<TestResultComparison> comparisonResults, string htmlOutputPath)
         {
-            using (var writer = new StreamWriter(htmlOutputPath, false, Encoding.UTF8))
+            using (var writer = new StreamWriter(fileNameToStream(htmlOutputPath), Encoding.UTF8))
             {
                 writer.WriteLine("<html><body>");
 
@@ -226,7 +225,7 @@ namespace Microsoft.Xunit.Performance.Analysis
                     }
 
                     writer.WriteLine("<table>");
-                    writer.WriteLine($"<tr><th>Test</th><th>Metric</th><th>Baseline Mean</th><th>Comparison Mean</th><th>Percent Change</th><th>Error</th></tr>");
+                    writer.WriteLine($"<tr><th>Test</th><th>Metric</th><th>Baseline Mean</th><th>Comparison Mean</th><th>Percent Change</th><th>Error</th><th>DegradeBar</th></tr>");
 
                     foreach (var test in from c in comparison select c)
                     {
@@ -234,6 +233,20 @@ namespace Microsoft.Xunit.Performance.Analysis
                         {
                             var passed = test.MetricComparisons[metric].Passed;
                             string color;
+                            string degradeBar = null;
+                            if (test.BaselineResult.DegradeBars.ContainsKey(metric))
+                            {
+                                string append = null;
+                                if (test.BaselineResult.DegradeBars[metric].metricDegradeBarType == MetricDegradeBarType.Percent)
+                                    append = "%";
+                                else if (test.BaselineResult.DegradeBars[metric].metricDegradeBarType == MetricDegradeBarType.Value)
+                                    append = "#";
+                                degradeBar = test.BaselineResult.DegradeBars[metric].metricDegradeBar.ToString() + append;
+                            }
+                            else
+                            {
+                                degradeBar = "None Specified";
+                            }
                             if (!passed.HasValue)
                                 color = "black";
                             else if (passed.Value)
@@ -241,9 +254,9 @@ namespace Microsoft.Xunit.Performance.Analysis
                             else
                                 color = "red";
                             if (metric == DurationMetricName)
-                                writer.WriteLine($"<tr><td>{test.TestName}</td><td>{metric}</td><td>{test.MetricComparisons[metric].BaselineMean.ToString("F3")}</td><td>{test.MetricComparisons[metric].ComparisonMean.ToString("F3")}</td><td><font  color={color}>{test.MetricComparisons[metric].PercentChange.ToString("+##.#%;-##.#%")}</font></td><td>+/-{test.MetricComparisons[metric].PercentChangeError.ToString("P1")}</td></tr>");
+                                writer.WriteLine($"<tr><td>{test.TestName}</td><td>{metric}</td><td>{test.MetricComparisons[metric].BaselineMean.ToString("F3")}</td><td>{test.MetricComparisons[metric].ComparisonMean.ToString("F3")}</td><td><font  color={color}>{test.MetricComparisons[metric].PercentChange.ToString("+##.#%;-##.#%")}</font></td><td>+/-{test.MetricComparisons[metric].PercentChangeError.ToString("P1")}</td><td>{degradeBar}</td></tr>");
                             else
-                                writer.WriteLine($"<tr><td></td><td>{metric}</td><td>{test.MetricComparisons[metric].BaselineMean.ToString("F3")}</td><td>{test.MetricComparisons[metric].ComparisonMean.ToString("F3")}</td><td><font  color={color}>{test.MetricComparisons[metric].PercentChange.ToString("+##.#%;-##.#%")}</font></td><td>+/-{test.MetricComparisons[metric].PercentChangeError.ToString("P1")}</td></tr>");
+                                writer.WriteLine($"<tr><td></td><td>{metric}</td><td>{test.MetricComparisons[metric].BaselineMean.ToString("F3")}</td><td>{test.MetricComparisons[metric].ComparisonMean.ToString("F3")}</td><td><font  color={color}>{test.MetricComparisons[metric].PercentChange.ToString("+##.#%;-##.#%")}</font></td><td>+/-{test.MetricComparisons[metric].PercentChangeError.ToString("P1")}</td><td>{degradeBar}</td></tr>");
                         }
                     }
                     writer.WriteLine("</table>");
@@ -262,8 +275,6 @@ namespace Microsoft.Xunit.Performance.Analysis
                     writer.WriteLine($"<tr><th>Test</th><th>Metric</th><th>Unit</th><th>Min</th><th>Mean</th><th>Max</th><th>Margin</th><th>StdDev</th></tr>");
                     foreach (var test in run.Value)
                     {
-                        //var stats = test.Value.Stats[DurationMetricName];
-                        //writer.WriteLine($"<tr><td>{test.Value.TestName}</td><td>{DurationMetricName}</td><td>{test.Value.Iterations.First().MetricUnits[DurationMetricName]}</td><td>{stats.Minimum.ToString("F3")}</td><td>{stats.Mean.ToString("F3")}</td><td>{stats.Maximum.ToString("F3")}</td><td>{stats.MarginOfError(ErrorConfidence).ToString("P1")}</td><td>{stats.StandardDeviation.ToString("F3")}</td></tr>");
                         foreach (var stat in test.Value.Stats)
                         {
                             if (stat.Key == DurationMetricName) // should always be first
@@ -281,7 +292,7 @@ namespace Microsoft.Xunit.Performance.Analysis
 
         private static void WriteTestResultsCSV(Dictionary<string, Dictionary<string, TestResult>> testResults, string csvOutputPath)
         {
-            using (var writer = new StreamWriter(csvOutputPath))
+            using (var writer = new StreamWriter(fileNameToStream(csvOutputPath)))
             {
                 foreach (var run in testResults)
                 {
@@ -317,6 +328,7 @@ namespace Microsoft.Xunit.Performance.Analysis
             public bool isBaseline = false;
             public Dictionary<string, RunningStatistics> Stats = new Dictionary<string, RunningStatistics>();
             public List<TestIterationResult> Iterations = new List<TestIterationResult>();
+            public Dictionary<string, MetricDegradeBar> DegradeBars;
         }
 
         private class TestIterationResult
@@ -328,6 +340,7 @@ namespace Microsoft.Xunit.Performance.Analysis
             public bool isBaseline = false;
             public Dictionary<string, double> MetricValues = new Dictionary<string, double>();
             public Dictionary<string, string> MetricUnits = new Dictionary<string, string>();
+            public Dictionary<string, MetricDegradeBar> DegradeBars;
         }
 
         private class TestResultComparison
@@ -337,6 +350,32 @@ namespace Microsoft.Xunit.Performance.Analysis
             public TestResult ComparisonResult;
 
             public Dictionary<string, MetricComparison> MetricComparisons;
+        }
+
+        private class MetricDegradeBar
+        {
+            public MetricDegradeBar(string metricName, string metricValue)
+            {
+                this.metricName = metricName;
+                if (metricValue.EndsWith("#"))
+                    this.metricDegradeBarType = MetricDegradeBarType.Value;
+                else if (metricValue.EndsWith("%"))
+                    this.metricDegradeBarType = MetricDegradeBarType.Percent;
+                else
+                    throw new Exception($"Metric Degrade Bar for metric {metricName} must end with # or %");
+                if (!double.TryParse(metricValue.TrimEnd('#', '%'), out this.metricDegradeBar))
+                    throw new Exception($"Could not parse {metricValue.TrimEnd('#', '%')} as a double.");
+            }
+
+            public string metricName;
+            public double metricDegradeBar;
+            public MetricDegradeBarType metricDegradeBarType;
+        }
+
+        private enum MetricDegradeBarType
+        {
+            Value = 0,
+            Percent = 1
         }
 
         private class MetricComparison
@@ -367,16 +406,44 @@ namespace Microsoft.Xunit.Performance.Analysis
             {
                 get
                 {
-                    if (PercentChange > 0 && PercentChange > PercentChangeError)
+                    if (!parent.BaselineResult.Iterations.FirstOrDefault().DegradeBars.ContainsKey(MetricName))
                     {
-                        if (BaselineMean == 0 && ComparisonMean < 1) // there's sometimes nondeterministic 0/1 behavior... ignore these
+                        if (PercentChange > 0 && PercentChange > PercentChangeError)
+                        {
+                            if (BaselineMean == 0 && ComparisonMean < 1) // there's sometimes nondeterministic 0/1 behavior... ignore these
+                                return null;
+                            return false;
+                        }
+                        if (PercentChange < 0 && PercentChange < -PercentChangeError)
+                            return true;
+                        else
                             return null;
-                        return false;
                     }
-                    if (PercentChange < 0 && PercentChange < -PercentChangeError)
-                        return true;
                     else
-                        return null;
+                    {
+                        var degradeBar = parent.BaselineResult.Iterations.FirstOrDefault().DegradeBars[MetricName];
+                        if (degradeBar.metricDegradeBarType == MetricDegradeBarType.Percent)
+                        {
+                            if (PercentChange > 0 && PercentChange*100 > degradeBar.metricDegradeBar)
+                                return false;
+                            else if (PercentChange < 0 && PercentChange*100 < -degradeBar.metricDegradeBar)
+                                return true;
+                            else
+                                return null;
+                        }
+                        else if (degradeBar.metricDegradeBarType == MetricDegradeBarType.Value)
+                        {
+                            var difference = ComparisonMean - BaselineMean;
+                            if (difference > 0 && difference > degradeBar.metricDegradeBar)
+                                return false;
+                            else if (difference < 0 && difference < -degradeBar.metricDegradeBar)
+                                return true;
+                            else
+                                return null;
+                        }
+                        else // no other degradebar types implemented
+                            return null;
+                    }
                 }
             }
         }
@@ -402,6 +469,14 @@ namespace Microsoft.Xunit.Performance.Analysis
                 var perfElem = testElem.Element("performance");
                 var runId = perfElem.Attribute("runid").Value;
                 var etlPath = perfElem.Attribute("etl").Value;
+                var degradeBars = new Dictionary<string, MetricDegradeBar>();
+                foreach (var xmlDegradeBars in doc.Descendants("MetricDegradeBars"))
+                {
+                    foreach (var degradeBar in xmlDegradeBars.Descendants())
+                    {
+                        degradeBars[degradeBar.Name.ToString()] = new MetricDegradeBar(degradeBar.Name.ToString(), degradeBar.Attribute("degradeBar").Value.ToString());
+                    }
+                }
 
                 foreach (var iteration in perfElem.Descendants("iteration"))
                 {
@@ -430,9 +505,16 @@ namespace Microsoft.Xunit.Performance.Analysis
                         result.MetricUnits.Add(metricName, metricUnits);
                     }
 
+                    result.DegradeBars = degradeBars;
+
                     yield return result;
                 }
             }
+        }
+
+        private static Stream fileNameToStream(string input)
+        {
+            return File.Open(input, FileMode.Create);
         }
     }
 
