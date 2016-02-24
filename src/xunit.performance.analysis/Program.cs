@@ -48,7 +48,6 @@ namespace Microsoft.Xunit.Performance.Analysis
                                 if (file.EndsWith(".xml", StringComparison.OrdinalIgnoreCase))
                                 {
                                     foundFile = true;
-                                    xmlPaths.Add(file);
                                     baseline = file;
                                 }
                                 else

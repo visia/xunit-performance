@@ -179,79 +179,90 @@ Arguments: {startInfo.Arguments}");
             using (var evaluationContext = logger.GetReader())
             {
                 var xmlDoc = XDocument.Load(xmlPath);
-                foreach (var testElem in xmlDoc.Descendants("test"))
+                foreach (var assembly in xmlDoc.Descendants("assembly")) // create MetricDegradeBars section
                 {
-                    var testName = testElem.Attribute("name").Value;
+                    var MetricDegradeBars = new XElement("MetricDegradeBars");
+                    assembly.AddFirst(MetricDegradeBars);
 
-                    var perfElem = new XElement("performance", new XAttribute("runid", project.RunId), new XAttribute("etl", Path.GetFullPath(evaluationContext.LogPath)));
-                    testElem.Add(perfElem);
 
-                    var metrics = evaluationContext.GetMetrics(testName);
-                    if (metrics != null)
+                    foreach (var testElem in assembly.Descendants("test"))
                     {
-                        var metricsElem = new XElement("metrics");
-                        perfElem.Add(metricsElem);
+                        var testName = testElem.Attribute("name").Value;
 
-                        foreach (var metric in metrics)
+                        var perfElem = new XElement("performance", new XAttribute("runid", project.RunId), new XAttribute("etl", Path.GetFullPath(evaluationContext.LogPath)));
+                        testElem.Add(perfElem);
+
+                        var metrics = evaluationContext.GetMetrics(testName);
+                        if (metrics != null)
                         {
-                            if (metric.Unit == PerformanceMetricUnits.ListCount)
+                            var metricsElem = new XElement("metrics");
+                            perfElem.Add(metricsElem);
+
+                            foreach (var metric in metrics)
                             {
-                                metricsElem.Add(new XElement(metric.Id, new XAttribute("displayName", metric.DisplayName), new XAttribute("unit", PerformanceMetricUnits.List)));
-                                metricsElem.Add(new XElement(metric.Id + "Count", new XAttribute("displayName", metric.DisplayName + " Count"), new XAttribute("unit", PerformanceMetricUnits.Count)));
-                            }
-                            else
-                            {
-                                metricsElem.Add(new XElement(metric.Id, new XAttribute("displayName", metric.DisplayName), new XAttribute("unit", metric.Unit)));
+                                if (metric.Unit == PerformanceMetricUnits.ListCount)
+                                {
+                                    metricsElem.Add(new XElement(metric.Id, new XAttribute("displayName", metric.DisplayName), new XAttribute("unit", PerformanceMetricUnits.List)));
+                                    metricsElem.Add(new XElement(metric.Id + "Count", new XAttribute("displayName", metric.DisplayName + " Count"), new XAttribute("unit", PerformanceMetricUnits.Count)));
+                                    CreateMetricDegradeBars(MetricDegradeBars, metric.Id + "Count");
+                                }
+                                else
+                                {
+                                    metricsElem.Add(new XElement(metric.Id, new XAttribute("displayName", metric.DisplayName), new XAttribute("unit", metric.Unit)));
+                                    CreateMetricDegradeBars(MetricDegradeBars, metric.Id);
+                                }
                             }
                         }
-                    }
 
-                    var iterations = evaluationContext.GetValues(testName);
-                    if (iterations != null)
-                    {
-                        var iterationsElem = new XElement("iterations");
-                        perfElem.Add(iterationsElem);
-
-                        for (int i = 0; i < iterations.Count; i++)
+                        var iterations = evaluationContext.GetValues(testName);
+                        if (iterations != null)
                         {
-                            var iteration = iterations[i];
-                            if (iteration != null)
-                            {
-                                var iterationElem = new XElement("iteration", new XAttribute("index", i));
-                                iterationsElem.Add(iterationElem);
+                            var iterationsElem = new XElement("iterations");
+                            perfElem.Add(iterationsElem);
 
-                                foreach (var value in iteration)
+                            for (int i = 0; i < iterations.Count; i++)
+                            {
+                                var iteration = iterations[i];
+                                if (iteration != null)
                                 {
-                                    double result;
-                                    if (double.TryParse(value.Value.ToString(), out result)) { // result is a double, add it as an attribute
-                                        iterationElem.Add(new XAttribute(value.Key, result.ToString("R")));
-                                    }
-                                    else // result is a list, add the list as a new element
+                                    var iterationElem = new XElement("iteration", new XAttribute("index", i));
+                                    iterationsElem.Add(iterationElem);
+
+                                    foreach (var value in iteration)
                                     {
-                                        ListMetricInfo listMetricInfo = (ListMetricInfo)value.Value;
-                                        if (listMetricInfo.hasCount)
-                                        {
-                                            iterationElem.Add(new XAttribute(value.Key + "Count", listMetricInfo.count.ToString()));
+                                        double result;
+                                        if (double.TryParse(value.Value.ToString(), out result))
+                                        { // result is a double, add it as an attribute
+                                            iterationElem.Add(new XAttribute(value.Key, result.ToString("R")));
                                         }
-                                        var listResult = new XElement("ListResult");
-                                        listResult.Add(new XAttribute("Name", value.Key));
-                                        listResult.Add(new XAttribute("Iteration", i));
-                                        iterationElem.Add(listResult);
-                                        foreach(ListMetricInfo.Metrics listMetric in listMetricInfo.MetricList)
+                                        else // result is a list, add the list as a new element
                                         {
-                                            var ListMetric = new XElement("ListMetric");
-                                            ListMetric.Add(new XAttribute("Name", listMetric.Name));
-                                            ListMetric.Add(new XAttribute("Unit", listMetric.Unit));
-                                            ListMetric.Add(new XAttribute("Type", listMetric.Type.Name));
-                                            listResult.Add(ListMetric);
-                                        }
-                                        foreach(var listItem in listMetricInfo.Items.OrderByDescending(key => key.Value.Size))
-                                        {
-                                            var ListItem = new XElement("ListItem");
-                                            ListItem.Add(new XAttribute("Name", listItem.Key));
-                                            ListItem.Add(new XAttribute("Size", listItem.Value.Size));
-                                            ListItem.Add(new XAttribute("Count", listItem.Value.Count));
-                                            listResult.Add(ListItem);
+                                            ListMetricInfo listMetricInfo = (ListMetricInfo)value.Value;
+                                            if (listMetricInfo.hasCount)
+                                            {
+                                                string metricName = value.Key + "Count";
+                                                iterationElem.Add(new XAttribute(metricName, listMetricInfo.count.ToString()));
+                                            }
+                                            var listResult = new XElement("ListResult");
+                                            listResult.Add(new XAttribute("Name", value.Key));
+                                            listResult.Add(new XAttribute("Iteration", i));
+                                            iterationElem.Add(listResult);
+                                            foreach (ListMetricInfo.Metrics listMetric in listMetricInfo.MetricList)
+                                            {
+                                                var ListMetric = new XElement("ListMetric");
+                                                ListMetric.Add(new XAttribute("Name", listMetric.Name));
+                                                ListMetric.Add(new XAttribute("Unit", listMetric.Unit));
+                                                ListMetric.Add(new XAttribute("Type", listMetric.Type.Name));
+                                                listResult.Add(ListMetric);
+                                            }
+                                            foreach (var listItem in listMetricInfo.Items.OrderByDescending(key => key.Value.Size))
+                                            {
+                                                var ListItem = new XElement("ListItem");
+                                                ListItem.Add(new XAttribute("Name", RemoveInvalidChars(listItem.Key)));
+                                                ListItem.Add(new XAttribute("Size", listItem.Value.Size));
+                                                ListItem.Add(new XAttribute("Count", listItem.Value.Count));
+                                                listResult.Add(ListItem);
+                                            }
                                         }
                                     }
                                 }
@@ -265,8 +276,6 @@ Arguments: {startInfo.Arguments}");
                 Consumption.FormatXML.formatXML(xmlPath);
                 List<string> xmlPaths = new List<string>();
                 xmlPaths.Add(xmlPath);
-                if (project.baselineXML != null)
-                    xmlPaths.Add(project.baselineXML);
                 string analysisPath = Path.Combine(project.OutputDir, "performanceAnalysisResults - " + project.OutputBaseFileName + ".html");
                 Analysis.AnalysisHelpers.runAnalysis(xmlPaths, project.baselineXML, htmlOutputPath: analysisPath);
             }
@@ -448,6 +457,24 @@ Arguments: {startInfo.Arguments}");
             }
 
             return project;
+        }
+
+        // http://blogs.msdn.com/b/codejunkie/archive/2008/03/14/invalid-high-surrogate-character-0xxxxx.aspx
+        private static string RemoveInvalidChars(string input)
+        {
+            if (input == null)
+                return null;
+
+            Encoding utfencoder = UTF8Encoding.GetEncoding("UTF-8", new EncoderReplacementFallback(""), new DecoderReplacementFallback(""));
+            byte[] byteText = utfencoder.GetBytes(input);
+            string output = utfencoder.GetString(byteText);
+            return output;
+        }
+
+        private static void CreateMetricDegradeBars(XElement MetricDegradeBars, string metricName, string degradeBarValue = "None")
+        {
+            if (MetricDegradeBars.Element(metricName) == null)
+                MetricDegradeBars.Add(new XElement(metricName, new XAttribute("degradeBar", "None")));
         }
 
         private static bool IsConfigFile(string fileName)

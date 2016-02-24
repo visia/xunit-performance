@@ -18,6 +18,14 @@ namespace Microsoft.Xunit.Performance.Analysis
         /// </summary>
         private const string DurationMetricName = "Duration";
 
+        /// <summary>
+        /// Runs xunit.performance.analysis - does analysis of xunit.performance xml output files and compares it to a baseline
+        /// </summary>
+        /// <param name="xmlPaths">List of xml file paths to be analyzed (baseline must be included)</param>
+        /// <param name="baseline">File path of baseline xml (optional)</param>
+        /// <param name="xmlOutputPath">Outputs an xml to this path (optional) (incomplete analysis)</param>
+        /// <param name="htmlOutputPath">Outputs an html to this path (optional)</param>
+        /// <param name="csvOutputPath">Outputs a csv to this path (optional) (incomplete analysis)</param>
         public static void runAnalysis(List<string> xmlPaths, string baseline = null, string xmlOutputPath = null, string htmlOutputPath = null, string csvOutputPath = null)
         {
             var allComparisonIds = new List<Tuple<string, string>>();
@@ -26,10 +34,9 @@ namespace Microsoft.Xunit.Performance.Analysis
             {
                 foreach (var file in xmlPaths)
                 {
-                    if (file == baseline)
-                        continue;
                     allComparisonIds.Add(Tuple.Create(Path.GetFileNameWithoutExtension(baseline), Path.GetFileNameWithoutExtension(file)));
                 }
+                xmlPaths.Add(baseline);
             }
 
             var allIterations = ParseXmlFiles(xmlPaths, baseline);
@@ -127,8 +134,6 @@ namespace Microsoft.Xunit.Performance.Analysis
                 }
 
                 result.isBaseline = iteration.isBaseline;
-
-                result.DegradeBars = iteration.DegradeBars;
 
                 result.Iterations.Add(iteration);
             }
@@ -242,6 +247,8 @@ namespace Microsoft.Xunit.Performance.Analysis
                                 else if (test.BaselineResult.DegradeBars[metric].metricDegradeBarType == MetricDegradeBarType.Value)
                                     append = "#";
                                 degradeBar = test.BaselineResult.DegradeBars[metric].metricDegradeBar.ToString() + append;
+                                if (test.BaselineResult.DegradeBars[metric].metricDegradeBarType == MetricDegradeBarType.None)
+                                    degradeBar = "None";
                             }
                             else
                             {
@@ -328,7 +335,7 @@ namespace Microsoft.Xunit.Performance.Analysis
             public bool isBaseline = false;
             public Dictionary<string, RunningStatistics> Stats = new Dictionary<string, RunningStatistics>();
             public List<TestIterationResult> Iterations = new List<TestIterationResult>();
-            public Dictionary<string, MetricDegradeBar> DegradeBars;
+            public Dictionary<string, MetricDegradeBar> DegradeBars { get { return Iterations.FirstOrDefault().DegradeBars; } }
         }
 
         private class TestIterationResult
@@ -361,9 +368,11 @@ namespace Microsoft.Xunit.Performance.Analysis
                     this.metricDegradeBarType = MetricDegradeBarType.Value;
                 else if (metricValue.EndsWith("%"))
                     this.metricDegradeBarType = MetricDegradeBarType.Percent;
+                else if (metricValue == "None")
+                    this.metricDegradeBarType = MetricDegradeBarType.None;
                 else
-                    throw new Exception($"Metric Degrade Bar for metric {metricName} must end with # or %");
-                if (!double.TryParse(metricValue.TrimEnd('#', '%'), out this.metricDegradeBar))
+                    throw new Exception($"Metric Degrade Bar for metric {metricName} must be None or end with # or %");
+                if (!(metricDegradeBarType == MetricDegradeBarType.None) && !double.TryParse(metricValue.TrimEnd('#', '%'), out this.metricDegradeBar))
                     throw new Exception($"Could not parse {metricValue.TrimEnd('#', '%')} as a double.");
             }
 
@@ -372,10 +381,11 @@ namespace Microsoft.Xunit.Performance.Analysis
             public MetricDegradeBarType metricDegradeBarType;
         }
 
-        private enum MetricDegradeBarType
+        public enum MetricDegradeBarType
         {
             Value = 0,
-            Percent = 1
+            Percent = 1,
+            None = 2
         }
 
         private class MetricComparison
@@ -406,44 +416,62 @@ namespace Microsoft.Xunit.Performance.Analysis
             {
                 get
                 {
-                    if (!parent.BaselineResult.Iterations.FirstOrDefault().DegradeBars.ContainsKey(MetricName))
+                    if (!parent.BaselineResult.DegradeBars.ContainsKey(MetricName))
                     {
-                        if (PercentChange > 0 && PercentChange > PercentChangeError)
-                        {
-                            if (BaselineMean == 0 && ComparisonMean < 1) // there's sometimes nondeterministic 0/1 behavior... ignore these
-                                return null;
+                        return PassedNoDegradeBar;
+                    }
+                    else
+                    {
+                        return PassedWithDegradeBar;
+                    }
+                }
+            }
+
+            private bool? PassedNoDegradeBar
+            {
+                get
+                {
+                    if (PercentChange > 0 && PercentChange > PercentChangeError)
+                    {
+                        if (BaselineMean == 0 && ComparisonMean < 1) // there's sometimes nondeterministic 0/1 behavior... ignore these
+                            return null;
+                        return false;
+                    }
+                    if (PercentChange < 0 && PercentChange < -PercentChangeError)
+                        return true;
+                    else
+                        return null;
+                }
+            }
+
+            private bool? PassedWithDegradeBar
+            {
+                get
+                {
+                    var degradeBar = parent.BaselineResult.DegradeBars[MetricName];
+                    if (degradeBar.metricDegradeBarType == MetricDegradeBarType.Percent)
+                    {
+                        if (PercentChange > 0 && PercentChange * 100 > degradeBar.metricDegradeBar)
                             return false;
-                        }
-                        if (PercentChange < 0 && PercentChange < -PercentChangeError)
+                        else if (PercentChange < 0 && PercentChange * 100 < -degradeBar.metricDegradeBar)
                             return true;
                         else
                             return null;
                     }
-                    else
+                    else if (degradeBar.metricDegradeBarType == MetricDegradeBarType.Value)
                     {
-                        var degradeBar = parent.BaselineResult.Iterations.FirstOrDefault().DegradeBars[MetricName];
-                        if (degradeBar.metricDegradeBarType == MetricDegradeBarType.Percent)
-                        {
-                            if (PercentChange > 0 && PercentChange*100 > degradeBar.metricDegradeBar)
-                                return false;
-                            else if (PercentChange < 0 && PercentChange*100 < -degradeBar.metricDegradeBar)
-                                return true;
-                            else
-                                return null;
-                        }
-                        else if (degradeBar.metricDegradeBarType == MetricDegradeBarType.Value)
-                        {
-                            var difference = ComparisonMean - BaselineMean;
-                            if (difference > 0 && difference > degradeBar.metricDegradeBar)
-                                return false;
-                            else if (difference < 0 && difference < -degradeBar.metricDegradeBar)
-                                return true;
-                            else
-                                return null;
-                        }
-                        else // no other degradebar types implemented
+                        var difference = ComparisonMean - BaselineMean;
+                        if (difference > 0 && difference > degradeBar.metricDegradeBar)
+                            return false;
+                        else if (difference < 0 && difference < -degradeBar.metricDegradeBar)
+                            return true;
+                        else
                             return null;
                     }
+                    else if (degradeBar.metricDegradeBarType == MetricDegradeBarType.None)
+                        return PassedNoDegradeBar;
+                    else // no other degradebar types implemented
+                        return null;
                 }
             }
         }
