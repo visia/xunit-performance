@@ -217,6 +217,7 @@ namespace Microsoft.Xunit.Performance.Analysis
                 {
                     writer.WriteLine($"<h1>{comparison.Key}</h1>");
                     writer.WriteLine("<table>");
+                    int anchorNum = 0;
 
                     var failedTests = findFailedTests(comparison, false);
                     if (failedTests.Count > 0)
@@ -224,16 +225,19 @@ namespace Microsoft.Xunit.Performance.Analysis
                         writer.WriteLine($"<tr><th><font  color=red>Failed Tests</font></th><th><font  color=red># Failed Metrics</font></th></tr>");
                         foreach (var test in failedTests)
                         {
-                            writer.WriteLine($"<tr><td><font  color=red>{test.Key}</font></td><td><font  color=red>{test.Value}</font></td></tr>");
+                            writer.WriteLine($"<tr><td><a href=\"#anchor{anchorNum}\"><font  color=red>{test.Key}</font></a></td><td><font  color=red>{test.Value}</font></td></tr>");
+                            anchorNum++;
                         }
                         writer.WriteLine("</table>");
                     }
 
                     writer.WriteLine("<table>");
                     writer.WriteLine($"<tr><th>Test</th><th>Metric</th><th>Baseline Mean</th><th>Comparison Mean</th><th>Percent Change</th><th>Error</th><th>DegradeBar</th></tr>");
+                    anchorNum = 0;
 
                     foreach (var test in from c in comparison select c)
                     {
+                        bool isFailedTest = failedTests.ContainsKey(test.TestName);
                         foreach (var metric in test.MetricComparisons.Keys)
                         {
                             var passed = test.MetricComparisons[metric].Passed;
@@ -261,7 +265,13 @@ namespace Microsoft.Xunit.Performance.Analysis
                             else
                                 color = "red";
                             if (metric == DurationMetricName)
-                                writer.WriteLine($"<tr><td>{test.TestName}</td><td>{metric}</td><td>{test.MetricComparisons[metric].BaselineMean.ToString("F3")}</td><td>{test.MetricComparisons[metric].ComparisonMean.ToString("F3")}</td><td><font  color={color}>{test.MetricComparisons[metric].PercentChange.ToString("+##.#%;-##.#%")}</font></td><td>+/-{test.MetricComparisons[metric].PercentChangeError.ToString("P1")}</td><td>{degradeBar}</td></tr>");
+                                if (isFailedTest)
+                                {
+                                    writer.WriteLine($"<tr><td><a name=\"anchor{anchorNum}\">{test.TestName}</a></td><td>{metric}</td><td>{test.MetricComparisons[metric].BaselineMean.ToString("F3")}</td><td>{test.MetricComparisons[metric].ComparisonMean.ToString("F3")}</td><td><font  color={color}>{test.MetricComparisons[metric].PercentChange.ToString("+##.#%;-##.#%")}</font></td><td>+/-{test.MetricComparisons[metric].PercentChangeError.ToString("P1")}</td><td>{degradeBar}</td></tr>");
+                                    anchorNum++;
+                                }
+                                else
+                                    writer.WriteLine($"<tr><td>{test.TestName}</td><td>{metric}</td><td>{test.MetricComparisons[metric].BaselineMean.ToString("F3")}</td><td>{test.MetricComparisons[metric].ComparisonMean.ToString("F3")}</td><td><font  color={color}>{test.MetricComparisons[metric].PercentChange.ToString("+##.#%;-##.#%")}</font></td><td>+/-{test.MetricComparisons[metric].PercentChangeError.ToString("P1")}</td><td>{degradeBar}</td></tr>");
                             else
                                 writer.WriteLine($"<tr><td></td><td>{metric}</td><td>{test.MetricComparisons[metric].BaselineMean.ToString("F3")}</td><td>{test.MetricComparisons[metric].ComparisonMean.ToString("F3")}</td><td><font  color={color}>{test.MetricComparisons[metric].PercentChange.ToString("+##.#%;-##.#%")}</font></td><td>+/-{test.MetricComparisons[metric].PercentChangeError.ToString("P1")}</td><td>{degradeBar}</td></tr>");
                         }
