@@ -263,6 +263,12 @@ Arguments: {startInfo.Arguments}");
                 using (var xmlFile = File.Create(xmlPath))
                     xmlDoc.Save(xmlFile);
                 Consumption.FormatXML.formatXML(xmlPath);
+                List<string> xmlPaths = new List<string>();
+                xmlPaths.Add(xmlPath);
+                if (project.baselineXML != null)
+                    xmlPaths.Add(project.baselineXML);
+                string analysisPath = Path.Combine(project.OutputDir, "performanceAnalysisResults - " + project.OutputBaseFileName + ".html");
+                Analysis.AnalysisHelpers.runAnalysis(xmlPaths, project.baselineXML, htmlOutputPath: analysisPath);
             }
         }
 
@@ -392,20 +398,6 @@ Arguments: {startInfo.Arguments}");
                         project.RunnerArgs = option.Value;
                         break;
 
-                    case "baselinerunner":
-                        if (option.Value == null)
-                            throw new ArgumentException("missing argument for -baselineRunner");
-
-                        project.BaselineRunnerCommand = option.Value;
-                        break;
-
-                    case "baseline":
-                        if (option.Value == null)
-                            throw new ArgumentException("missing argument for -baseline");
-
-                        AddBaseline(project, option.Value);
-                        break;
-
                     case "runid":
                         if (option.Value == null)
                             throw new ArgumentException("missing argument for -runid");
@@ -434,6 +426,16 @@ Arguments: {startInfo.Arguments}");
                             throw new ArgumentException("outfile contains invalid characters.", optionName);
 
                         project.OutputBaseFileName = option.Value;
+                        break;
+
+                    case "baseline":
+                        if (option.Value == null)
+                            throw new ArgumentException("missing argument for -baseline");
+
+                        if (!File.Exists(option.Value))
+                            throw new ArgumentException($"baseline file {option.Value} could not be found.");
+
+                        project.baselineXML = option.Value;
                         break;
 
                     default:
@@ -466,14 +468,6 @@ Arguments: {startInfo.Arguments}");
                 });
 
             return result;
-        }
-
-        private static void AddBaseline(XunitPerformanceProject project, string assembly)
-        {
-            project.AddBaseline(new XunitProjectAssembly
-            {
-                AssemblyFilename = Path.GetFullPath(assembly),
-            });
         }
 
         private static KeyValuePair<string, string> PopOption(Stack<string> arguments)

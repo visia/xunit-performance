@@ -9,24 +9,11 @@ namespace Microsoft.Xunit.Performance
 {
     public class XunitPerformanceProject : XunitProject
     {
-        private List<XunitProjectAssembly> _baselineAssemblies = new List<XunitProjectAssembly>();
-        private string _baselineRunnerCommand;
-
-        public IEnumerable<XunitProjectAssembly> BaselineAssemblies { get { return _baselineAssemblies; } }
-
-        public void AddBaseline(XunitProjectAssembly assembly) { _baselineAssemblies.Add(assembly); }
-
         public string RunnerHost { get; set; } = null;
 
         public string RunnerCommand { get; set; } = "xunit.console.exe";
 
         public string RunnerArgs { get; set; }
-
-        public string BaselineRunnerCommand
-        {
-            get { return _baselineRunnerCommand ?? RunnerCommand; }
-            set { _baselineRunnerCommand = value; }
-        }
 
         public string RunId { get; set; } = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd-HH-mm-ss");
 
@@ -54,20 +41,10 @@ namespace Microsoft.Xunit.Performance
             }
         }
 
-        private bool _useLocalUser = false;
         /// <summary>
         /// Whether xunit.console.exe is run on a different user account
         /// </summary>
-        public bool UseLocalUser {
-            get
-            {
-                return _useLocalUser;
-            }
-            set
-            {
-                _useLocalUser = value;
-            }
-        }
+        public bool UseLocalUser { get; set; }
 
         /// <summary>
         /// Computer to run this xunit.console.exe on
@@ -88,5 +65,10 @@ namespace Microsoft.Xunit.Performance
         /// Environment variables to set for xunit.console.exe
         /// </summary>
         public System.Collections.DictionaryEntry[] runEnvVars { get; set; }
+
+        /// <summary>
+        /// Baseline xml to run analysis against
+        /// </summary>
+        public string baselineXML { get; set; }
     }
 }
