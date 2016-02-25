@@ -209,7 +209,8 @@ Arguments: {startInfo.Arguments}");
                                 else
                                 {
                                     metricsElem.Add(new XElement(metric.Id, new XAttribute("displayName", metric.DisplayName), new XAttribute("unit", metric.Unit)));
-                                    CreateMetricDegradeBars(MetricDegradeBars, metric.Id);
+                                    if (metric.Unit != PerformanceMetricUnits.List)
+                                        CreateMetricDegradeBars(MetricDegradeBars, metric.Id);
                                 }
                             }
                         }
