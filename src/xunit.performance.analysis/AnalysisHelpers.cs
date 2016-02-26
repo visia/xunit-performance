@@ -443,12 +443,16 @@ namespace Microsoft.Xunit.Performance.Analysis
                 {
                     if (PercentChange > 0 && PercentChange > PercentChangeError)
                     {
-                        if (BaselineMean == 0 && ComparisonMean < 1) // there's sometimes nondeterministic 0/1 behavior... ignore these
+                        if ((ComparisonMean - BaselineMean) < 1) // there's sometimes nondeterministic 0/1 behavior... ignore these
                             return null;
                         return false;
                     }
                     if (PercentChange < 0 && PercentChange < -PercentChangeError)
+                    {
+                        if ((BaselineMean - ComparisonMean ) < 1) // there's sometimes nondeterministic 0/1 behavior... ignore these
+                            return null;
                         return true;
+                    }
                     else
                         return null;
                 }
@@ -462,9 +466,17 @@ namespace Microsoft.Xunit.Performance.Analysis
                     if (degradeBar.metricDegradeBarType == MetricDegradeBarType.Percent)
                     {
                         if (PercentChange > 0 && PercentChange * 100 > degradeBar.metricDegradeBar)
+                        {
+                            if ((ComparisonMean - BaselineMean) < 1) // there's sometimes nondeterministic 0/1 behavior... ignore these
+                                return null;
                             return false;
+                        }
                         else if (PercentChange < 0 && PercentChange * 100 < -degradeBar.metricDegradeBar)
+                        {
+                            if ((BaselineMean - ComparisonMean) < 1) // there's sometimes nondeterministic 0/1 behavior... ignore these
+                                return null;
                             return true;
+                        }
                         else
                             return null;
                     }
