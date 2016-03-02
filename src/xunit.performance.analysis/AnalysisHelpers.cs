@@ -110,9 +110,6 @@ namespace Microsoft.Xunit.Performance.Analysis
 
             foreach (var iteration in allIterations)
             {
-                if (iteration.TestIteration == 0)
-                    continue; // we want to ignore the results from iteration 0
-
                 Dictionary<string, TestResult> runResults;
                 if (!testResults.TryGetValue(iteration.RunId, out runResults))
                     testResults[iteration.RunId] = runResults = new Dictionary<string, TestResult>();
@@ -307,6 +304,20 @@ namespace Microsoft.Xunit.Performance.Analysis
             }
         }
 
+        private static string EscapeCsvString(string str)
+        {
+            // Escape the csv string
+            if (str.Contains("\""))
+            {
+                str = "\"" + str.Replace("\"", "\"\"") + "\"";
+            }
+            if (str.Contains(","))
+            {
+                str = string.Format("\"{0}\"", str);
+            }
+            return str;
+        }
+
         private static void WriteTestResultsCSV(Dictionary<string, Dictionary<string, TestResult>> testResults, string csvOutputPath)
         {
             using (var writer = new StreamWriter(fileNameToStream(csvOutputPath)))
@@ -318,7 +329,7 @@ namespace Microsoft.Xunit.Performance.Analysis
                         foreach (var iteration in result.Iterations)
                         {
                             writer.WriteLine(String.Format("\"{0}\",\"{1}\",\"{2}\",\"{3}\"",
-                                iteration.RunId, iteration.RunId, iteration.TestName, iteration.MetricValues[DurationMetricName].ToString()));
+                                EscapeCsvString(iteration.RunId), EscapeCsvString(iteration.RunId), EscapeCsvString(iteration.TestName), iteration.MetricValues[DurationMetricName].ToString()));
                         }
                     }
                 }
@@ -531,6 +542,9 @@ namespace Microsoft.Xunit.Performance.Analysis
                 foreach (var iteration in perfElem.Descendants("iteration"))
                 {
                     var index = int.Parse(iteration.Attribute("index").Value);
+
+                    if (index == 0)
+                        continue; // ignore iteration 0
 
                     var result = new TestIterationResult();
                     result.TestName = testName;
