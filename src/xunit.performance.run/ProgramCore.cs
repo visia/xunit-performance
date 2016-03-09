@@ -137,8 +137,8 @@ namespace Microsoft.Xunit.Performance
             };
 
             startInfo.Environment["XUNIT_PERFORMANCE_RUN_ID"] = project.RunId;
-            startInfo.Environment["XUNIT_PERFORMANCE_MIN_ITERATION"] = "49";
-            startInfo.Environment["XUNIT_PERFORMANCE_MAX_ITERATION"] = "49";
+            startInfo.Environment["XUNIT_PERFORMANCE_MIN_ITERATION"] = "9";
+            startInfo.Environment["XUNIT_PERFORMANCE_MAX_ITERATION"] = "9";
             startInfo.Environment["XUNIT_PERFORMANCE_MAX_TOTAL_MILLISECONDS"] = "0";
             startInfo.Environment["COMPLUS_gcConcurrent"] = "0";
             startInfo.Environment["COMPLUS_gcServer"] = "0";
@@ -259,7 +259,7 @@ Arguments: {startInfo.Arguments}");
                                             foreach (var listItem in listMetricInfo.Items.OrderByDescending(key => key.Value.Size))
                                             {
                                                 var ListItem = new XElement("ListItem");
-                                                ListItem.Add(new XAttribute("Name", RemoveInvalidChars(listItem.Key)));
+                                                ListItem.Add(new XAttribute("Name", listItem.Key));
                                                 ListItem.Add(new XAttribute("Size", listItem.Value.Size));
                                                 ListItem.Add(new XAttribute("Count", listItem.Value.Count));
                                                 listResult.Add(ListItem);
@@ -458,18 +458,6 @@ Arguments: {startInfo.Arguments}");
             }
 
             return project;
-        }
-
-        // http://blogs.msdn.com/b/codejunkie/archive/2008/03/14/invalid-high-surrogate-character-0xxxxx.aspx
-        private static string RemoveInvalidChars(string input)
-        {
-            if (input == null)
-                return null;
-
-            Encoding utfencoder = UTF8Encoding.GetEncoding("UTF-8", new EncoderReplacementFallback(""), new DecoderReplacementFallback(""));
-            byte[] byteText = utfencoder.GetBytes(input);
-            string output = utfencoder.GetString(byteText);
-            return output;
         }
 
         private static void CreateMetricDegradeBars(XElement MetricDegradeBars, string metricName, string degradeBarValue = "None")
