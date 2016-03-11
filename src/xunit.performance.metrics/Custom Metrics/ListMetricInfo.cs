@@ -90,17 +90,14 @@ namespace Microsoft.Xunit.Performance
         }
 
         //Helpers
-        // http://blogs.msdn.com/b/codejunkie/archive/2008/03/14/invalid-high-surrogate-character-0xxxxx.aspx
         private static string RemoveInvalidChars(string input)
         {
             if (input == null)
                 return null;
             
-            Encoding utfencoder = UTF8Encoding.GetEncoding("UTF-8", new EncoderReplacementFallback(""), new DecoderReplacementFallback(""));
-            byte[] byteText = utfencoder.GetBytes(input);
-            //string output = utfencoder.GetString(byteText);
-            string output = System.Convert.ToBase64String(byteText);
-            return output;
+            string encoded = System.Xml.XmlConvert.EncodeName(input);
+            string decoded = System.Xml.XmlConvert.DecodeName(input);
+            return decoded;
         }
     }
 }
