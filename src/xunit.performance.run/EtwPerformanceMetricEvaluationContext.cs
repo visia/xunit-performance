@@ -14,6 +14,8 @@ namespace Microsoft.Xunit.Performance
 {
     internal class EtwPerformanceMetricEvaluationContext : PerformanceMetricEvaluationContext, IDisposable, IPerformanceMetricReader
     {
+        private const bool MAINTHREADONLY = true;
+
         private readonly Dictionary<string, List<KeyValuePair<PerformanceMetric, PerformanceMetricEvaluator>>> _evaluators = new Dictionary<string, List<KeyValuePair<PerformanceMetric, PerformanceMetricEvaluator>>>();
         private readonly Dictionary<string, List<Dictionary<string, Object>>> _metricValues = new Dictionary<string, List<Dictionary<string, Object>>>();
         private readonly TraceEventSource _traceEventSource;
@@ -21,6 +23,7 @@ namespace Microsoft.Xunit.Performance
         private readonly string _runid;
         private string _currentTestCase;
         private int _currentIteration;
+        private int? _currentThread;
 
         public string LogPath { get; }
 
@@ -36,7 +39,7 @@ namespace Microsoft.Xunit.Performance
 
         public override TraceEventSource TraceEventSource => _traceEventSource;
 
-        public override bool IsTestEvent(TraceEvent traceEvent) => _currentProcesses.Contains(traceEvent.ProcessID);
+        public override bool IsTestEvent(TraceEvent traceEvent) => (_currentProcesses.Contains(traceEvent.ProcessID) && (!MAINTHREADONLY || _currentThread == traceEvent.ThreadID));
 
         internal EtwPerformanceMetricEvaluationContext(string logPath, TraceEventSource traceEventSource, IEnumerable<PerformanceTestInfo> testInfo, string runid)
         {
@@ -69,6 +72,7 @@ namespace Microsoft.Xunit.Performance
             _currentTestCase = args.BenchmarkName;
             _currentIteration = args.Iteration;
             _currentProcesses.Add(args.ProcessID);
+            _currentThread = args.ThreadID;
 
             var evaluators = _evaluators.GetOrDefault(_currentTestCase);
             if (evaluators != null)
@@ -102,6 +106,7 @@ namespace Microsoft.Xunit.Performance
 
             _currentTestCase = null;
             _currentProcesses.Clear();
+            _currentThread = null;
         }
 
         private void ProcessStart(ProcessTraceData args)

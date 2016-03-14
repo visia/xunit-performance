@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace Microsoft.Xunit.Performance
 {
@@ -40,6 +41,7 @@ namespace Microsoft.Xunit.Performance
         public void addItem(string itemName, long size)
         {
             SizeCount item;
+            itemName = RemoveInvalidChars(itemName);
             if (!Items.TryGetValue(itemName, out item))
             {
                 item = new SizeCount();
@@ -85,6 +87,21 @@ namespace Microsoft.Xunit.Performance
                 Size = 0;
                 Count = 0;
             }
+        }
+
+        //Helpers
+        // http://blogs.msdn.com/b/codejunkie/archive/2008/03/14/invalid-high-surrogate-character-0xxxxx.aspx
+        private static string RemoveInvalidChars(string input)
+        {
+            if (input == null)
+                return null;
+
+            Encoding utfencoder = UTF8Encoding.GetEncoding("UTF-8", new EncoderReplacementFallback(""), new DecoderReplacementFallback(""));
+            byte[] byteText = utfencoder.GetBytes(input);
+            string output = utfencoder.GetString(byteText);
+            string encoded = System.Xml.XmlConvert.EncodeName(output);
+            string decoded = System.Xml.XmlConvert.DecodeName(encoded);
+            return decoded;
         }
     }
 }

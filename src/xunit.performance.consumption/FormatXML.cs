@@ -43,7 +43,7 @@ namespace Microsoft.Xunit.Performance.Consumption
                 }
                 foreach(var ListResult in test.ListResults)
                 {
-                    scenarioResult.Add(ListResult);
+                    counterResults.Add(ListResult);
                 }
             }
             return mainFile;

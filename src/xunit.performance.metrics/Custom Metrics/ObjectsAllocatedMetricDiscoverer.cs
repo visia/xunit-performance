@@ -61,8 +61,6 @@ namespace Microsoft.Xunit.Performance
             {
                 var classID = data.ClassID.ToString();
                 var className = data.Name;
-                //if (_objectNameDict.ContainsKey(classID))
-                //    throw new System.Exception($"Duplicate class ID found. Class ID: {classID} Class Name: {className}");
                 _objectNameDict[classID] = className;
             }
 
@@ -70,7 +68,6 @@ namespace Microsoft.Xunit.Performance
             {
                 if (_context.IsTestEvent(data))
                 {
-                    //_objects.addItem(data.FileName, data.IoSize);
                     var classID = data.ClassID.ToString();
                     string className;
                     if (!_objectNameDict.TryGetValue(classID, out className))
