@@ -31,7 +31,8 @@ namespace Microsoft.Xunit.Performance
                         ProviderGuid = ETWClrProfilerTraceEventParser.ProviderGuid,
                         Level = TraceEventLevel.Verbose,
                         Keywords = (ulong)(ETWClrProfilerTraceEventParser.Keywords.Call
-                                         | ETWClrProfilerTraceEventParser.Keywords.CallSampled)
+                                         | ETWClrProfilerTraceEventParser.Keywords.CallSampled),
+                        StacksEnabled = true
                     };
                 }
             }
@@ -46,7 +47,7 @@ namespace Microsoft.Xunit.Performance
         {
             private readonly PerformanceMetricEvaluationContext _context;
             private ListMetricInfo _objects = null;
-            const int MINCALLS = 1;
+            const int MINCALLS = 0;
 
             public CallsEnteredEvaluator(PerformanceMetricEvaluationContext context)
             {
@@ -90,7 +91,7 @@ namespace Microsoft.Xunit.Performance
 
             public override object EndIteration(TraceEvent endEvent)
             {
-                cleanObjects();
+                //cleanObjects();
                 var ret = _objects;
                 _objects = null;
                 return ret;

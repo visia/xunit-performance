@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Microsoft.Xunit.Performance
 {
@@ -17,6 +18,23 @@ namespace Microsoft.Xunit.Performance
         public IEnumerable<Metrics> MetricList { get { return new Metrics[] { Name, Size, Count }; } }
 
         public bool hasCount = false;
+
+        public bool hasBytes = false;
+
+        public long bytes
+        {
+            get
+            {
+                if (hasBytes == false)
+                    return 0;
+                long size = 0;
+                foreach (var item in Items)
+                {
+                    size += item.Value.Size;
+                }
+                return size;
+            }
+        }
         
         public long count
         {
@@ -101,7 +119,9 @@ namespace Microsoft.Xunit.Performance
             string output = utfencoder.GetString(byteText);
             string encoded = System.Xml.XmlConvert.EncodeName(output);
             string decoded = System.Xml.XmlConvert.DecodeName(encoded);
-            return decoded;
+            var regex = "[\x00-\x08\x0B\x0C\x0E-\x1F]";
+            string regexRemove = Regex.Replace(decoded, regex, String.Empty, RegexOptions.Compiled);
+            return regexRemove;
         }
     }
 }

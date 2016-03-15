@@ -158,10 +158,14 @@ namespace Microsoft.Xunit.Performance
                 }
 
                 ulong profilerKeywords = 0;
+                var stacksEnabled = new TraceEventProviderOptions() { StacksEnabled = true };
 
                 foreach (var userInfo in mergedProviderInfo.OfType<UserProviderInfo>())
                 {
-                    sessions.UserSession.EnableProvider(userInfo.ProviderGuid, userInfo.Level, userInfo.Keywords);
+                    if(userInfo.StacksEnabled == true)
+                        sessions.UserSession.EnableProvider(userInfo.ProviderGuid, userInfo.Level, userInfo.Keywords, stacksEnabled);
+                    else
+                        sessions.UserSession.EnableProvider(userInfo.ProviderGuid, userInfo.Level, userInfo.Keywords);
                     if (userInfo.ProviderGuid == ETWClrProfilerTraceEventParser.ProviderGuid)
                         profilerKeywords |= userInfo.Keywords;
                 }

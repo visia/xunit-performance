@@ -33,5 +33,15 @@ namespace Microsoft.Xunit.Performance.Sdk
         /// Indicates that a performance metric's value is both a list and a count.
         /// </summary>
         public const string ListCount = "listcount";
+
+        /// <summary>
+        /// Indicates that a performance metric's value is both a list and a size (# bytes)
+        /// </summary>
+        public const string ListBytes = "listbytes";
+
+        /// <summary>
+        /// Indicates that a performance metric's value is a list, a count, and a size (# bytes)
+        /// </summary>
+        public const string ListCountBytes = "listcountbytes";
     }
 }

@@ -32,7 +32,8 @@ namespace Microsoft.Xunit.Performance
                         Keywords = (ulong)(ETWClrProfilerTraceEventParser.Keywords.GCAlloc
                                          | ETWClrProfilerTraceEventParser.Keywords.GCAllocSampled
                                          | ETWClrProfilerTraceEventParser.Keywords.Call
-                                         | ETWClrProfilerTraceEventParser.Keywords.CallSampled)
+                                         | ETWClrProfilerTraceEventParser.Keywords.CallSampled),
+                        StacksEnabled = true
                     };
                 }
             }
