@@ -30,9 +30,8 @@ namespace Microsoft.Xunit.Performance
                         ProviderGuid = ETWClrProfilerTraceEventParser.ProviderGuid,
                         Level = TraceEventLevel.Verbose,
                         Keywords = (ulong)(ETWClrProfilerTraceEventParser.Keywords.GCAlloc
-                                         | ETWClrProfilerTraceEventParser.Keywords.GCAllocSampled
-                                         | ETWClrProfilerTraceEventParser.Keywords.Call
-                                         | ETWClrProfilerTraceEventParser.Keywords.CallSampled)
+                                         | ETWClrProfilerTraceEventParser.Keywords.Call),
+                        StacksEnabled = true
                     };
                 }
             }

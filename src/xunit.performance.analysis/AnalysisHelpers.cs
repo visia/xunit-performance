@@ -76,24 +76,30 @@ namespace Microsoft.Xunit.Performance.Analysis
 
                     foreach (var metric in comparisonTest.Iterations.First().MetricValues.Keys)
                     {
-                        var metricComparison = new MetricComparison(comparisonResult, metric);
-                        // Compute the standard error in the difference
-                        var baselineCount = baselineTest.Iterations.Count;
-                        var baselineSum = baselineTest.Iterations.Sum(iteration => iteration.MetricValues[metric]);
-                        var baselineSumSquared = baselineSum * baselineSum;
-                        var baselineSumOfSquares = baselineTest.Iterations.Sum(iteration => iteration.MetricValues[metric] * iteration.MetricValues[metric]);
+                        try {
+                            var metricComparison = new MetricComparison(comparisonResult, metric);
+                            // Compute the standard error in the difference
+                            var baselineCount = baselineTest.Iterations.Count;
+                            var baselineSum = baselineTest.Iterations.Sum(iteration => iteration.MetricValues[metric]);
+                            var baselineSumSquared = baselineSum * baselineSum;
+                            var baselineSumOfSquares = baselineTest.Iterations.Sum(iteration => iteration.MetricValues[metric] * iteration.MetricValues[metric]);
 
-                        var comparisonCount = comparisonTest.Iterations.Count;
-                        var comparisonSum = comparisonTest.Iterations.Sum(iteration => iteration.MetricValues[metric]);
-                        var comparisonSumSquared = comparisonSum * comparisonSum;
-                        var comparisonSumOfSquares = comparisonTest.Iterations.Sum(iteration => iteration.MetricValues[metric] * iteration.MetricValues[metric]);
+                            var comparisonCount = comparisonTest.Iterations.Count;
+                            var comparisonSum = comparisonTest.Iterations.Sum(iteration => iteration.MetricValues[metric]);
+                            var comparisonSumSquared = comparisonSum * comparisonSum;
+                            var comparisonSumOfSquares = comparisonTest.Iterations.Sum(iteration => iteration.MetricValues[metric] * iteration.MetricValues[metric]);
 
-                        var stdErrorDiff = Math.Sqrt((baselineSumOfSquares - (baselineSumSquared / baselineCount) + comparisonSumOfSquares - (comparisonSumSquared / comparisonCount)) * (1.0 / baselineCount + 1.0 / comparisonCount) / (baselineCount + comparisonCount - 1));
-                        var interval = stdErrorDiff * MathNet.Numerics.ExcelFunctions.TInv(1.0 - ErrorConfidence, baselineCount + comparisonCount - 2);
+                            var stdErrorDiff = Math.Sqrt((baselineSumOfSquares - (baselineSumSquared / baselineCount) + comparisonSumOfSquares - (comparisonSumSquared / comparisonCount)) * (1.0 / baselineCount + 1.0 / comparisonCount) / (baselineCount + comparisonCount - 1));
+                            var interval = stdErrorDiff * MathNet.Numerics.ExcelFunctions.TInv(1.0 - ErrorConfidence, baselineCount + comparisonCount - 2);
 
-                        metricComparison.PercentChange = (comparisonTest.Stats[metric].Mean - baselineTest.Stats[metric].Mean) / baselineTest.Stats[metric].Mean;
-                        metricComparison.PercentChangeError = interval / baselineTest.Stats[DurationMetricName].Mean;
-                        MetricComparisons.Add(metric, metricComparison);
+                            metricComparison.PercentChange = (comparisonTest.Stats[metric].Mean - baselineTest.Stats[metric].Mean) / baselineTest.Stats[metric].Mean;
+                            metricComparison.PercentChangeError = interval / baselineTest.Stats[metric].Mean;
+                            MetricComparisons.Add(metric, metricComparison);
+                        }
+                        catch
+                        { // metric does not exist in either baseline or comparison. Ignore comparison.
+
+                        }
                     }
 
                     comparisonResult.MetricComparisons = MetricComparisons;

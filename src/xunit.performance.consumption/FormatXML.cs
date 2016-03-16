@@ -17,7 +17,13 @@ namespace Microsoft.Xunit.Performance.Consumption
             List<testResult> testResults = parseXML(mainFile);
             XElement formattedResults = writeResults(testResults);
             FileStream outStream = new FileStream(outPath, FileMode.Create);
-            formattedResults.Save(outStream);
+            System.Xml.XmlWriterSettings settings = new System.Xml.XmlWriterSettings();
+            settings.CheckCharacters = false;
+            settings.Indent = true;
+            settings.IndentChars = "  ";
+            using (System.Xml.XmlWriter writer = System.Xml.XmlWriter.Create(outStream, settings))
+                formattedResults.Save(writer);
+            //formattedResults.Save(outStream);
         }
 
         static XElement writeResults(List<testResult> testResults)

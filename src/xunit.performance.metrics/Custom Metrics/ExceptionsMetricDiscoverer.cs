@@ -29,7 +29,8 @@ namespace Microsoft.Xunit.Performance
                     {
                         ProviderGuid = ClrTraceEventParser.ProviderGuid,
                         Level = TraceEventLevel.Verbose,
-                        Keywords = (ulong)ClrTraceEventParser.Keywords.Exception
+                        Keywords = (ulong)ClrTraceEventParser.Keywords.Exception,
+                        StacksEnabled = true
                     };
                 }
             }

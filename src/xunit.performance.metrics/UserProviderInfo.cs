@@ -29,9 +29,12 @@ namespace Microsoft.Xunit.Performance
                 {
                     ProviderGuid = this.ProviderGuid,
                     Keywords = current.Keywords | this.Keywords,
-                    Level = (this.Level > current.Level) ? this.Level : current.Level
+                    Level = (this.Level > current.Level) ? this.Level : current.Level,
+                    StacksEnabled = this.StacksEnabled || current.StacksEnabled                    
                 };
             }
         }
+
+        public bool StacksEnabled { get; set; } = false;
     }
 }

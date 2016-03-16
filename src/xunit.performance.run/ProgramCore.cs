@@ -200,17 +200,30 @@ Arguments: {startInfo.Arguments}");
 
                             foreach (var metric in metrics)
                             {
-                                if (metric.Unit == PerformanceMetricUnits.ListCount)
+                                switch (metric.Unit)
                                 {
-                                    metricsElem.Add(new XElement(metric.Id, new XAttribute("displayName", metric.DisplayName), new XAttribute("unit", PerformanceMetricUnits.List)));
-                                    metricsElem.Add(new XElement(metric.Id + "Count", new XAttribute("displayName", metric.DisplayName + " Count"), new XAttribute("unit", PerformanceMetricUnits.Count)));
-                                    CreateMetricDegradeBars(MetricDegradeBars, metric.Id + "Count");
-                                }
-                                else
-                                {
-                                    metricsElem.Add(new XElement(metric.Id, new XAttribute("displayName", metric.DisplayName), new XAttribute("unit", metric.Unit)));
-                                    if (metric.Unit != PerformanceMetricUnits.List)
-                                        CreateMetricDegradeBars(MetricDegradeBars, metric.Id);
+                                    case PerformanceMetricUnits.ListCount:
+                                        metricsElem.Add(new XElement(metric.Id, new XAttribute("displayName", metric.DisplayName), new XAttribute("unit", PerformanceMetricUnits.List)));
+                                        metricsElem.Add(new XElement(metric.Id + "Count", new XAttribute("displayName", metric.DisplayName + " Count"), new XAttribute("unit", PerformanceMetricUnits.Count)));
+                                        CreateMetricDegradeBars(MetricDegradeBars, metric.Id + "Count");
+                                        break;
+                                    case PerformanceMetricUnits.ListBytes:
+                                        metricsElem.Add(new XElement(metric.Id, new XAttribute("displayName", metric.DisplayName), new XAttribute("unit", PerformanceMetricUnits.List)));
+                                        metricsElem.Add(new XElement(metric.Id + "Bytes", new XAttribute("displayName", metric.DisplayName + " Bytes"), new XAttribute("unit", PerformanceMetricUnits.Bytes)));
+                                        CreateMetricDegradeBars(MetricDegradeBars, metric.Id + "Bytes");
+                                        break;
+                                    case PerformanceMetricUnits.ListCountBytes:
+                                        metricsElem.Add(new XElement(metric.Id, new XAttribute("displayName", metric.DisplayName), new XAttribute("unit", PerformanceMetricUnits.List)));
+                                        metricsElem.Add(new XElement(metric.Id + "Bytes", new XAttribute("displayName", metric.DisplayName + " Bytes"), new XAttribute("unit", PerformanceMetricUnits.Bytes)));
+                                        metricsElem.Add(new XElement(metric.Id + "Count", new XAttribute("displayName", metric.DisplayName + " Count"), new XAttribute("unit", PerformanceMetricUnits.Count)));
+                                        CreateMetricDegradeBars(MetricDegradeBars, metric.Id + "Count");
+                                        CreateMetricDegradeBars(MetricDegradeBars, metric.Id + "Bytes");
+                                        break;
+                                    default:
+                                        metricsElem.Add(new XElement(metric.Id, new XAttribute("displayName", metric.DisplayName), new XAttribute("unit", metric.Unit)));
+                                        if (metric.Unit != PerformanceMetricUnits.List)
+                                            CreateMetricDegradeBars(MetricDegradeBars, metric.Id);
+                                        break;
                                 }
                             }
                         }
@@ -244,6 +257,11 @@ Arguments: {startInfo.Arguments}");
                                                 string metricName = value.Key + "Count";
                                                 iterationElem.Add(new XAttribute(metricName, listMetricInfo.count.ToString()));
                                             }
+                                            if (listMetricInfo.hasBytes)
+                                            {
+                                                string metricName = value.Key + "Bytes";
+                                                iterationElem.Add(new XAttribute(metricName, listMetricInfo.bytes.ToString()));
+                                            }
                                             var listResult = new XElement("ListResult");
                                             listResult.Add(new XAttribute("Name", value.Key));
                                             listResult.Add(new XAttribute("Iteration", i));
@@ -273,7 +291,17 @@ Arguments: {startInfo.Arguments}");
                 }
 
                 using (var xmlFile = File.Create(xmlPath))
-                    xmlDoc.Save(xmlFile);
+                {
+                    //    xmlDoc.Save(xmlFile);
+                    System.Xml.XmlWriterSettings settings = new System.Xml.XmlWriterSettings();
+                    settings.CheckCharacters = false;
+                    settings.Indent = true;
+                    settings.IndentChars = "  ";
+                    using (System.Xml.XmlWriter writer = System.Xml.XmlWriter.Create(xmlFile, settings))
+                        xmlDoc.Save(writer);
+                }
+                
+
                 Consumption.FormatXML.formatXML(xmlPath);
                 List<string> xmlPaths = new List<string>();
                 xmlPaths.Add(xmlPath);

@@ -17,7 +17,7 @@ namespace Microsoft.Xunit.Performance
         private class ObjectsAllocatedMetric : PerformanceMetric
         {
             public ObjectsAllocatedMetric()
-                : base("ObjectsAllocated", "Objects Allocated", PerformanceMetricUnits.ListCount)
+                : base("ObjectsAllocated", "Objects Allocated", PerformanceMetricUnits.ListCountBytes)
             {
             }
 
@@ -30,9 +30,8 @@ namespace Microsoft.Xunit.Performance
                         ProviderGuid = ETWClrProfilerTraceEventParser.ProviderGuid,
                         Level = TraceEventLevel.Verbose,
                         Keywords = (ulong)( ETWClrProfilerTraceEventParser.Keywords.GCAlloc
-                                         | ETWClrProfilerTraceEventParser.Keywords.GCAllocSampled
-                                         | ETWClrProfilerTraceEventParser.Keywords.Call
-                                         | ETWClrProfilerTraceEventParser.Keywords.CallSampled)
+                                         | ETWClrProfilerTraceEventParser.Keywords.Call),
+                        StacksEnabled = true
                     };
                 }
             }
@@ -85,6 +84,7 @@ namespace Microsoft.Xunit.Performance
                 _objects = new ListMetricInfo();
                 _objects.clear();
                 _objects.hasCount = true;
+                _objects.hasBytes = true;
             }
 
             public override object EndIteration(TraceEvent endEvent)
