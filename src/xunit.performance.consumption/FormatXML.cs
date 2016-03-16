@@ -19,6 +19,8 @@ namespace Microsoft.Xunit.Performance.Consumption
             FileStream outStream = new FileStream(outPath, FileMode.Create);
             System.Xml.XmlWriterSettings settings = new System.Xml.XmlWriterSettings();
             settings.CheckCharacters = false;
+            settings.Indent = true;
+            settings.IndentChars = "  ";
             using (System.Xml.XmlWriter writer = System.Xml.XmlWriter.Create(outStream, settings))
                 formattedResults.Save(writer);
             //formattedResults.Save(outStream);

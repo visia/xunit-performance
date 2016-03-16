@@ -119,9 +119,11 @@ namespace Microsoft.Xunit.Performance
             string output = utfencoder.GetString(byteText);
             string encoded = System.Xml.XmlConvert.EncodeName(output);
             string decoded = System.Xml.XmlConvert.DecodeName(encoded);
-            var regex = "[\x00-\x08\x0B\x0C\x0E-\x1F]";
+            var regex = "[\x00-\x08\x0B\x0C\x0E-\x1F\xFFFD-\xFFFF]";
             string regexRemove = Regex.Replace(decoded, regex, String.Empty, RegexOptions.Compiled);
-            return regexRemove;
+            var regex2 = new Regex("[^\u0009\u000a\u000d\u0020-\ud7ff\ue000-\ufffd]|([\ud800-\udbff](?![\udc00-\udfff]))|((?<![\ud800-\udbff])[\udc00-\udfff])");
+            string regexRemove2 = regex2.Replace(regexRemove, "");
+            return regexRemove2;
         }
     }
 }

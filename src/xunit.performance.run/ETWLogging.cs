@@ -21,7 +21,7 @@ namespace Microsoft.Xunit.Performance
             {
                 Keywords = (ulong)KernelTraceEventParser.Keywords.Process | (ulong)KernelTraceEventParser.Keywords.Profile |
                            (ulong)KernelTraceEventParser.Keywords.Thread | (ulong)KernelTraceEventParser.Keywords.ThreadTime,
-                StackKeywords = (ulong)KernelTraceEventParser.Keywords.Profile | (ulong)KernelTraceEventParser.Keywords.ThreadTime
+                StackKeywords = (ulong)KernelTraceEventParser.Keywords.Profile// | (ulong)KernelTraceEventParser.Keywords.ThreadTime
             },
             new UserProviderInfo()
             {

@@ -295,6 +295,8 @@ Arguments: {startInfo.Arguments}");
                     //    xmlDoc.Save(xmlFile);
                     System.Xml.XmlWriterSettings settings = new System.Xml.XmlWriterSettings();
                     settings.CheckCharacters = false;
+                    settings.Indent = true;
+                    settings.IndentChars = "  ";
                     using (System.Xml.XmlWriter writer = System.Xml.XmlWriter.Create(xmlFile, settings))
                         xmlDoc.Save(writer);
                 }
