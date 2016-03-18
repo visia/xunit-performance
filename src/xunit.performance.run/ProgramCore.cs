@@ -137,9 +137,9 @@ namespace Microsoft.Xunit.Performance
             };
 
             startInfo.Environment["XUNIT_PERFORMANCE_RUN_ID"] = project.RunId;
-            startInfo.Environment["XUNIT_PERFORMANCE_MIN_ITERATION"] = "9";
-            startInfo.Environment["XUNIT_PERFORMANCE_MAX_ITERATION"] = "9";
-            startInfo.Environment["XUNIT_PERFORMANCE_MAX_TOTAL_MILLISECONDS"] = "0";
+            startInfo.Environment["XUNIT_PERFORMANCE_MIN_ITERATION"] = RunConfiguration.XUNIT_PERFORMANCE_MAX_ITERATION.ToString();
+            startInfo.Environment["XUNIT_PERFORMANCE_MAX_ITERATION"] = RunConfiguration.XUNIT_PERFORMANCE_MIN_ITERATION.ToString();
+            startInfo.Environment["XUNIT_PERFORMANCE_MAX_TOTAL_MILLISECONDS"] = RunConfiguration.XUNIT_PERFORMANCE_MAX_TOTAL_MILLISECONDS.ToString();
             startInfo.Environment["COMPLUS_gcConcurrent"] = "0";
             startInfo.Environment["COMPLUS_gcServer"] = "0";
 
@@ -476,6 +476,46 @@ Arguments: {startInfo.Arguments}");
                         project.baselineXML = option.Value;
                         break;
 
+                    case "stacksenabled":
+                        if (option.Value == null)
+                            throw new ArgumentException("missing argument for -stacksenabled");
+                        bool stacksEnabled;
+                        if (bool.TryParse(option.Value, out stacksEnabled))
+                            RunConfiguration._stacksEnabled = stacksEnabled;
+                        else
+                            throw new ArgumentException("invalid argument for -stacksenabled");
+                        break;
+
+                    case "maxiterations":
+                        if(option.Value == null)
+                            throw new ArgumentException("missing argument for -maxiterations");
+                        int maxIterations;
+                        if (int.TryParse(option.Value, out maxIterations))
+                            RunConfiguration._maxIterations = maxIterations;
+                        else
+                            throw new ArgumentException("invalid argument for -maxiterations");
+                        break;
+
+                    case "miniterations":
+                        if (option.Value == null)
+                            throw new ArgumentException("missing argument for -miniterations");
+                        int minIterations;
+                        if (int.TryParse(option.Value, out minIterations))
+                            RunConfiguration._minIterations = minIterations;
+                        else
+                            throw new ArgumentException("invalid argument for -miniterations");
+                        break;
+
+                    case "maxtotalmilliseconds":
+                        if (option.Value == null)
+                            throw new ArgumentException("missing argument for -maxtotalmilliseconds");
+                        int maxTotalMilliseconds;
+                        if (int.TryParse(option.Value, out maxTotalMilliseconds))
+                            RunConfiguration._maxTotalMilliseconds = maxTotalMilliseconds;
+                        else
+                            throw new ArgumentException("invalid argument for -maxtotalmilliseconds");
+                        break;
+
                     default:
                         if (option.Value == null)
                             throw new ArgumentException($"missing filename for {option.Key}");
@@ -573,30 +613,38 @@ Arguments: {startInfo.Arguments}");
 
         internal static void PrintUsage()
         {
-            Console.WriteLine(@"usage: xunit.performance.run <assemblyFile> [options]
+            Console.WriteLine($@"usage: xunit.performance.run <assemblyFile> [options]
 
 Valid options:
-  -nologo                : do not show the copyright message
-  -trait ""name = value""  : only run tests with matching name/value traits
-                         : if specified more than once, acts as an OR operation
-  -notrait ""name=value""  : do not run tests with matching name/value traits
-                         : if specified more than once, acts as an AND operation
-  -class ""name""          : run all methods in a given test class (should be fully
-                         : specified; i.e., 'MyNamespace.MyClass')
-                         : if specified more than once, acts as an OR operation
-  -method ""name""         : run a given test method (should be fully specified;
-                         : i.e., 'MyNamespace.MyClass.MyTestMethod')
-  -runnerhost ""name""     : use the given CLR host to launch the runner program.
-  -runner ""name""         : use the specified runner to excecute tests. Defaults
-                         : to xunit.console.exe
-  -runnerargs ""args""     : append the given args to the end of the xunit runner's command-line
-                         : a quoted group of arguments, 
-                         : e.g. -runnerargs ""-verbose -nologo -parallel none""
-  -runid ""name""          : a run identifier used to create unique output filenames.
-  -outdir ""name""         : folder for output files.
-  -outfile ""name""        : base file name (without extension) for output files.
-                         : Defaults to the same value as runid.
-  -verbose               : verbose logging
+  -nologo                         : do not show the copyright message
+  -maxiterations ""value""          : max number of iterations to run each test
+                                  : counts from 0, defaults to {RunConfiguration.XUNIT_PERFORMANCE_MAX_ITERATION}
+  -maxiterations ""value""          : min number of iterations to run each test
+                                  : counts from 0, defaults to {RunConfiguration.XUNIT_PERFORMANCE_MIN_ITERATION}
+  -maxtotalmilliseconds ""value""   : max number of ms to run each test
+                                  : 0 for no max, defaults to {RunConfiguration.XUNIT_PERFORMANCE_MAX_TOTAL_MILLISECONDS}
+  -trait ""name = value""           : only run tests with matching name/value traits
+                                  : if specified more than once, acts as an OR operation
+  -notrait ""name=value""           : do not run tests with matching name/value traits
+                                  : if specified more than once, acts as an AND operation
+  -class ""name""                   : run all methods in a given test class (should be fully
+                                  : specified; i.e., 'MyNamespace.MyClass')
+                                  : if specified more than once, acts as an OR operation
+  -method ""name""                  : run a given test method (should be fully specified;
+                                  : i.e., 'MyNamespace.MyClass.MyTestMethod')
+  -runnerhost ""name""              : use the given CLR host to launch the runner program.
+  -runner ""name""                  : use the specified runner to excecute tests. Defaults
+                                  : to xunit.console.exe
+  -runnerargs ""args""              : append the given args to the end of the xunit runner's command-line
+                                  : a quoted group of arguments, 
+                                  : e.g. -runnerargs ""-verbose -nologo -parallel none""
+  -runid ""name""                   : a run identifier used to create unique output filenames.
+  -outdir ""name""                  : folder for output files.
+  -outfile ""name""                 : base file name (without extension) for output files.
+                                  : Defaults to the same value as runid.
+  -stacksenabled ""true/false""     : enables stacks for PerfView investigations
+                                  : (adds significant overhead)
+  -verbose                        : verbose logging
 ");
         }
     }

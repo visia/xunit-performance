@@ -82,6 +82,9 @@
     <Compile Include="..\xunit.performance.run\ProgramCore.cs">
       <Link>ProgramCore.cs</Link>
     </Compile>
+    <Compile Include="..\xunit.performance.run\RunConfiguration.cs">
+      <Link>RunConfiguration.cs</Link>
+    </Compile>
     <Compile Include="..\xunit.performance.run\XunitPerformanceProject.cs">
       <Link>XunitPerformanceProject.cs</Link>
     </Compile>
