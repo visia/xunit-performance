@@ -102,7 +102,7 @@ namespace Microsoft.Xunit.Performance
         }
 
         [ProcDomainExport]
-        public static string Start(string etlPath, IEnumerable<ProviderInfo> providerInfo, int bufferSizeMB = 64)
+        public static string Start(string etlPath, IEnumerable<ProviderInfo> providerInfo, int bufferSizeMB = 64, bool stacksEnabled = false)
         {
             EnsureUnloadHandlerRegistered();
 
@@ -153,17 +153,17 @@ namespace Microsoft.Xunit.Performance
                 if (kernelInfo != null)
                 {
                     var kernelKeywords = (KernelTraceEventParser.Keywords)kernelInfo.Keywords;
-                    var kernelStackKeywords = (KernelTraceEventParser.Keywords)kernelInfo.StackKeywords;
+                    var kernelStackKeywords = stacksEnabled ? (KernelTraceEventParser.Keywords)kernelInfo.StackKeywords : KernelTraceEventParser.Keywords.None;
                     sessions.KernelSession.EnableKernelProvider(kernelKeywords, kernelStackKeywords);
                 }
 
                 ulong profilerKeywords = 0;
-                var stacksEnabled = new TraceEventProviderOptions() { StacksEnabled = true };
+                var stacksEnabledOptions = new TraceEventProviderOptions() { StacksEnabled = true };
 
                 foreach (var userInfo in mergedProviderInfo.OfType<UserProviderInfo>())
                 {
-                    if(userInfo.StacksEnabled == true)
-                        sessions.UserSession.EnableProvider(userInfo.ProviderGuid, userInfo.Level, userInfo.Keywords, stacksEnabled);
+                    if(userInfo.StacksEnabled == true && stacksEnabled)
+                        sessions.UserSession.EnableProvider(userInfo.ProviderGuid, userInfo.Level, userInfo.Keywords, stacksEnabledOptions);
                     else
                         sessions.UserSession.EnableProvider(userInfo.ProviderGuid, userInfo.Level, userInfo.Keywords);
                     if (userInfo.ProviderGuid == ETWClrProfilerTraceEventParser.ProviderGuid)

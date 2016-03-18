@@ -21,7 +21,7 @@ namespace Microsoft.Xunit.Performance
             {
                 Keywords = (ulong)KernelTraceEventParser.Keywords.Process | (ulong)KernelTraceEventParser.Keywords.Profile |
                            (ulong)KernelTraceEventParser.Keywords.Thread | (ulong)KernelTraceEventParser.Keywords.ThreadTime,
-                StackKeywords = (ulong)KernelTraceEventParser.Keywords.Profile// | (ulong)KernelTraceEventParser.Keywords.ThreadTime
+                StackKeywords = (ulong)KernelTraceEventParser.Keywords.Profile | (ulong)KernelTraceEventParser.Keywords.ThreadTime
             },
             new UserProviderInfo()
             {
@@ -59,7 +59,7 @@ namespace Microsoft.Xunit.Performance
         public static async Task<IDisposable> StartAsync(string etlPath, IEnumerable<ProviderInfo> providers)
         {
             var allProviders = s_requiredProviders.Concat(providers).ToArray();
-            var sessionName = await s_loggerDomain.ExecuteAsync(() => Logger.Start(etlPath, allProviders, 1024));
+            var sessionName = await s_loggerDomain.ExecuteAsync(() => Logger.Start(etlPath, allProviders, 1024, RunConfiguration.XUNIT_PERFORMANCE_STACKS_ENABLED));
             return new Stopper(sessionName);
         }
     }
