@@ -43,8 +43,11 @@ namespace Microsoft.Xunit.Performance.Consumption
 
                     counterResult.Add(new XAttribute("Name", counter.displayName));
                     counterResult.Add(new XAttribute("Units", counter.unit));
-                    counterResult.Add(new XAttribute("Default", "false"));
-                    counterResult.Add(new XAttribute("Top", "false"));
+                    if (counter.displayName == "Duration")
+                        counterResult.Add(new XAttribute("Default", "true"));
+                    else
+                        counterResult.Add(new XAttribute("Default", "false"));
+                    counterResult.Add(new XAttribute("Top", "true"));
                     counterResult.Add(new XAttribute("Iteration", counter.iteration));
                 }
                 foreach(var ListResult in test.ListResults)
@@ -80,12 +83,15 @@ namespace Microsoft.Xunit.Performance.Consumption
                 }
                 foreach(var iteration in iterations.Elements())
                 {
+                    string it = iteration.Attribute("index").Value;
+                    if (it == "0")
+                        continue;
                     foreach (var metric in getMetrics(metrics))
                     {
                         if (metric.unit != "list")
                         {
                             metric.value = iteration.Attribute(metric.name).Value;
-                            metric.iteration = iteration.Attribute("index").Value;
+                            metric.iteration = it;
                             testResult.metrics.Add(metric);
                         }
                         else
