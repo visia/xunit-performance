@@ -7,7 +7,7 @@ namespace Microsoft.Xunit.Performance.Consumption
 
     static class FormatXML
     {
-        public static void formatXML(string XMLPath, string outPath = null)
+        public static string formatXML(string XMLPath, string outPath = null)
         {
             string fullPath = Path.GetDirectoryName(XMLPath);
             string fileName = Path.GetFileName(XMLPath);
@@ -23,7 +23,7 @@ namespace Microsoft.Xunit.Performance.Consumption
             settings.IndentChars = "  ";
             using (System.Xml.XmlWriter writer = System.Xml.XmlWriter.Create(outStream, settings))
                 formattedResults.Save(writer);
-            //formattedResults.Save(outStream);
+            return outPath;
         }
 
         static XElement writeResults(List<testResult> testResults)

@@ -64,6 +64,7 @@ namespace Microsoft.Xunit.Performance
         internal void RunTests(XunitPerformanceProject project)
         {
             string xmlPath = Path.Combine(project.OutputDir, project.OutputBaseFileName + ".xml");
+            string scenarioRangesPath = Path.Combine(project.OutputDir, "ScenarioRanges.txt");
 
             var commandLineArgs = new StringBuilder();
 
@@ -176,8 +177,10 @@ Arguments: {startInfo.Arguments}");
                 }
             }
 
+            List<ScenarioRange> ScenarioRanges;
             using (var evaluationContext = logger.GetReader())
             {
+                ScenarioRanges = evaluationContext.GetScenarioRanges();
                 var xmlDoc = XDocument.Load(xmlPath);
                 foreach (var assembly in xmlDoc.Descendants("assembly")) // create MetricDegradeBars section
                 {
@@ -292,7 +295,6 @@ Arguments: {startInfo.Arguments}");
 
                 using (var xmlFile = File.Create(xmlPath))
                 {
-                    //    xmlDoc.Save(xmlFile);
                     System.Xml.XmlWriterSettings settings = new System.Xml.XmlWriterSettings();
                     settings.CheckCharacters = false;
                     settings.Indent = true;
@@ -301,8 +303,17 @@ Arguments: {startInfo.Arguments}");
                         xmlDoc.Save(writer);
                 }
                 
+                using (var scenarioRangesFile = new StreamWriter(File.Create(scenarioRangesPath)))
+                {
+                    scenarioRangesFile.WriteLine("ScenarioName,Scenario Start (in ms),Scenario Stop (in ms),PerfView start/stop range (for copy/paste)");
+                    foreach(var scenarioRange in ScenarioRanges)
+                    {
+                        scenarioRangesFile.WriteLine($"{scenarioRange.ScenarioName},{scenarioRange.ScenarioStartTime},{scenarioRange.ScenarioStopTime},{scenarioRange.ScenarioStartTime} {scenarioRange.ScenarioStopTime}");
+                    }
+                }
 
-                Consumption.FormatXML.formatXML(xmlPath);
+                string tempResultsPath = Consumption.FormatXML.formatXML(xmlPath);
+
                 List<string> xmlPaths = new List<string>();
                 xmlPaths.Add(xmlPath);
                 string analysisPath = Path.Combine(project.OutputDir, "performanceAnalysisResults - " + project.OutputBaseFileName + ".html");
@@ -619,7 +630,7 @@ Valid options:
   -nologo                         : do not show the copyright message
   -maxiterations ""value""          : max number of iterations to run each test
                                   : counts from 0, defaults to {RunConfiguration.XUNIT_PERFORMANCE_MAX_ITERATION}
-  -maxiterations ""value""          : min number of iterations to run each test
+  -mixiterations ""value""          : min number of iterations to run each test
                                   : counts from 0, defaults to {RunConfiguration.XUNIT_PERFORMANCE_MIN_ITERATION}
   -maxtotalmilliseconds ""value""   : max number of ms to run each test
                                   : 0 for no max, defaults to {RunConfiguration.XUNIT_PERFORMANCE_MAX_TOTAL_MILLISECONDS}

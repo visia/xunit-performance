@@ -24,6 +24,8 @@ namespace Microsoft.Xunit.Performance
         private string _currentTestCase;
         private int _currentIteration;
         private int? _currentThread;
+        private ScenarioRange _currentScenarioRange;
+        private List<ScenarioRange> _scenarioRanges;
 
         public string LogPath { get; }
 
@@ -37,6 +39,11 @@ namespace Microsoft.Xunit.Performance
             return _metricValues.GetOrDefault(testCase);
         }
 
+        public List<ScenarioRange> GetScenarioRanges()
+        {
+            return _scenarioRanges;
+        }
+
         public override TraceEventSource TraceEventSource => _traceEventSource;
 
         public override bool IsTestEvent(TraceEvent traceEvent) => (_currentProcesses.Contains(traceEvent.ProcessID) && (!MAINTHREADONLY || _currentThread == traceEvent.ThreadID));
@@ -46,6 +53,8 @@ namespace Microsoft.Xunit.Performance
             LogPath = logPath;
             _traceEventSource = traceEventSource;
             _runid = runid;
+
+            _scenarioRanges = new List<ScenarioRange>();
 
             var benchmarkParser = new MicrosoftXunitBenchmarkTraceEventParser(traceEventSource);
             benchmarkParser.BenchmarkIterationStart += BenchmarkIterationStart;
@@ -74,6 +83,10 @@ namespace Microsoft.Xunit.Performance
             _currentProcesses.Add(args.ProcessID);
             _currentThread = args.ThreadID;
 
+            string scenarioName = $"{args.BenchmarkName} Iteration {args.Iteration.ToString()}";
+            double scenarioStartTime = args.TimeStampRelativeMSec;
+            _currentScenarioRange = new ScenarioRange() { ScenarioName = scenarioName, ScenarioStartTime = scenarioStartTime };
+
             var evaluators = _evaluators.GetOrDefault(_currentTestCase);
             if (evaluators != null)
             {
@@ -89,6 +102,11 @@ namespace Microsoft.Xunit.Performance
 
             if (_currentTestCase != args.BenchmarkName || _currentIteration != args.Iteration)
                 throw new InvalidOperationException();
+
+            string scenarioName = $"{args.BenchmarkName} Iteration {args.Iteration.ToString()}";
+            double scenarioStopTime = args.TimeStampRelativeMSec;
+            _currentScenarioRange.ScenarioStopTime = scenarioStopTime;
+            _scenarioRanges.Add(_currentScenarioRange);
 
             var evaluators = _evaluators.GetOrDefault(_currentTestCase);
             if (evaluators != null)
