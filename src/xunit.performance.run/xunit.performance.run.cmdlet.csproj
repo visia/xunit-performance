@@ -76,6 +76,9 @@
       <HintPath>..\..\packages\xunit.runner.utility.2.1.0\lib\net35\xunit.runner.utility.desktop.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Zipper">
+      <HintPath>Resources\Zipper.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\common\GlobalAssemblyInfo.cs">

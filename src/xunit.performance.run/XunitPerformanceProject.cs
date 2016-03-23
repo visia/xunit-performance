@@ -41,6 +41,8 @@ namespace Microsoft.Xunit.Performance
             }
         }
 
+        public string EtlPath { get { return System.IO.Path.Combine(OutputDir, OutputBaseFileName + ".etl"); } }
+
         /// <summary>
         /// Whether xunit.console.exe is run on a different user account
         /// </summary>

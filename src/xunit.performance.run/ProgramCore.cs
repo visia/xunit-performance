@@ -65,6 +65,7 @@ namespace Microsoft.Xunit.Performance
         {
             string xmlPath = Path.Combine(project.OutputDir, project.OutputBaseFileName + ".xml");
             string scenarioRangesPath = Path.Combine(project.OutputDir, "ScenarioRanges.txt");
+            string zipPath = Path.Combine(project.OutputDir, project.OutputBaseFileName + ".etl.zip");
 
             var commandLineArgs = new StringBuilder();
 
@@ -293,6 +294,7 @@ Arguments: {startInfo.Arguments}");
                     }
                 }
 
+                // Create xunit results: runID.xml
                 using (var xmlFile = File.Create(xmlPath))
                 {
                     System.Xml.XmlWriterSettings settings = new System.Xml.XmlWriterSettings();
@@ -303,6 +305,7 @@ Arguments: {startInfo.Arguments}");
                         xmlDoc.Save(writer);
                 }
                 
+                // Create ScenarioRanges.txt
                 using (var scenarioRangesFile = new StreamWriter(File.Create(scenarioRangesPath)))
                 {
                     scenarioRangesFile.WriteLine("ScenarioName,Scenario Start (in ms),Scenario Stop (in ms),PerfView start/stop range (for copy/paste)");
@@ -312,12 +315,38 @@ Arguments: {startInfo.Arguments}");
                     }
                 }
 
+                // Create PerformanceTempResults - runID.xml
                 string tempResultsPath = Consumption.FormatXML.formatXML(xmlPath);
 
+                // Create PerformanceAnalysisResults - runID.html
                 List<string> xmlPaths = new List<string>();
                 xmlPaths.Add(xmlPath);
                 string analysisPath = Path.Combine(project.OutputDir, "performanceAnalysisResults - " + project.OutputBaseFileName + ".html");
                 Analysis.AnalysisHelpers.runAnalysis(xmlPaths, project.baselineXML, htmlOutputPath: analysisPath);
+
+                // Prepare ngen symbols for zipping
+                string srcNGENPath = Path.Combine(project.OutputDir, project.OutputBaseFileName + ".etl" + ".NGENPDB");
+                string destNGENPath = Path.Combine(project.OutputDir, "symbols");
+                if (Directory.Exists(destNGENPath))
+                    Directory.Delete(destNGENPath, recursive:true);
+                if (Directory.Exists(srcNGENPath))
+                    Directory.Move(srcNGENPath, destNGENPath);
+
+                // Zip files to runID.etl.zip
+                string[] filesToZip = new string[] 
+                {
+                    xmlPath,
+                    scenarioRangesPath,
+                    tempResultsPath,
+                    analysisPath,
+                    project.EtlPath
+                };
+
+                using (Zipper.Zipper zipper = new Zipper.Zipper(zipPath, filesToZip))
+                {
+                    if (Directory.Exists(destNGENPath))
+                        zipper.QueueAddFileOrDir(destNGENPath);
+                }
             }
         }
 
