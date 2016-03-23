@@ -342,15 +342,13 @@ Arguments: {startInfo.Arguments}");
                     project.EtlPath
                 };
 
-                using (Zipper.Zipper zipper = new Zipper.Zipper(zipPath, filesToZip))
-                {
-                    if (Directory.Exists(destNGENPath))
-                        zipper.QueueAddFileOrDir(destNGENPath);
-                }
+                // Zipping does not work for xunit.performance.run.core. Replaced with noops
+                ZipperWrapper zipper = new ZipperWrapper(zipPath, filesToZip);
+                if (Directory.Exists(destNGENPath))
+                    zipper.QueueAddFileOrDir(destNGENPath);
+                zipper.CloseZipFile();
             }
         }
-
-
 
         internal XunitPerformanceProject ParseCommandLine(string[] args)
         {
