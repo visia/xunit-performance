@@ -64,6 +64,8 @@ namespace Microsoft.Xunit.Performance
         internal void RunTests(XunitPerformanceProject project)
         {
             string xmlPath = Path.Combine(project.OutputDir, project.OutputBaseFileName + ".xml");
+            string scenarioRangesPath = Path.Combine(project.OutputDir, "ScenarioRanges.txt");
+            string zipPath = Path.Combine(project.OutputDir, project.OutputBaseFileName + ".etl.zip");
 
             var commandLineArgs = new StringBuilder();
 
@@ -176,8 +178,10 @@ Arguments: {startInfo.Arguments}");
                 }
             }
 
+            List<ScenarioRange> ScenarioRanges;
             using (var evaluationContext = logger.GetReader())
             {
+                ScenarioRanges = evaluationContext.GetScenarioRanges();
                 var xmlDoc = XDocument.Load(xmlPath);
                 foreach (var assembly in xmlDoc.Descendants("assembly")) // create MetricDegradeBars section
                 {
@@ -290,9 +294,9 @@ Arguments: {startInfo.Arguments}");
                     }
                 }
 
+                // Create xunit results: runID.xml
                 using (var xmlFile = File.Create(xmlPath))
                 {
-                    //    xmlDoc.Save(xmlFile);
                     System.Xml.XmlWriterSettings settings = new System.Xml.XmlWriterSettings();
                     settings.CheckCharacters = false;
                     settings.Indent = true;
@@ -301,16 +305,50 @@ Arguments: {startInfo.Arguments}");
                         xmlDoc.Save(writer);
                 }
                 
+                // Create ScenarioRanges.txt
+                using (var scenarioRangesFile = new StreamWriter(File.Create(scenarioRangesPath)))
+                {
+                    scenarioRangesFile.WriteLine("ScenarioName,Scenario Start (in ms),Scenario Stop (in ms),PerfView start/stop range (for copy/paste)");
+                    foreach(var scenarioRange in ScenarioRanges)
+                    {
+                        scenarioRangesFile.WriteLine($"{scenarioRange.ScenarioName},{scenarioRange.ScenarioStartTime},{scenarioRange.ScenarioStopTime},{scenarioRange.ScenarioStartTime} {scenarioRange.ScenarioStopTime}");
+                    }
+                }
 
-                Consumption.FormatXML.formatXML(xmlPath);
+                // Create PerformanceTempResults - runID.xml
+                string tempResultsPath = Consumption.FormatXML.formatXML(xmlPath);
+
+                // Create PerformanceAnalysisResults - runID.html
                 List<string> xmlPaths = new List<string>();
                 xmlPaths.Add(xmlPath);
                 string analysisPath = Path.Combine(project.OutputDir, "performanceAnalysisResults - " + project.OutputBaseFileName + ".html");
                 Analysis.AnalysisHelpers.runAnalysis(xmlPaths, project.baselineXML, htmlOutputPath: analysisPath);
+
+                // Prepare ngen symbols for zipping
+                string srcNGENPath = Path.Combine(project.OutputDir, project.OutputBaseFileName + ".etl" + ".NGENPDB");
+                string destNGENPath = Path.Combine(project.OutputDir, "symbols");
+                if (Directory.Exists(destNGENPath))
+                    Directory.Delete(destNGENPath, recursive:true);
+                if (Directory.Exists(srcNGENPath))
+                    Directory.Move(srcNGENPath, destNGENPath);
+
+                // Zip files to runID.etl.zip
+                string[] filesToZip = new string[] 
+                {
+                    xmlPath,
+                    scenarioRangesPath,
+                    tempResultsPath,
+                    analysisPath,
+                    project.EtlPath
+                };
+
+                // Zipping does not work for xunit.performance.run.core. Replaced with noops
+                ZipperWrapper zipper = new ZipperWrapper(zipPath, filesToZip);
+                if (Directory.Exists(destNGENPath))
+                    zipper.QueueAddFileOrDir(destNGENPath);
+                zipper.CloseZipFile();
             }
         }
-
-
 
         internal XunitPerformanceProject ParseCommandLine(string[] args)
         {
@@ -619,7 +657,7 @@ Valid options:
   -nologo                         : do not show the copyright message
   -maxiterations ""value""          : max number of iterations to run each test
                                   : counts from 0, defaults to {RunConfiguration.XUNIT_PERFORMANCE_MAX_ITERATION}
-  -maxiterations ""value""          : min number of iterations to run each test
+  -mixiterations ""value""          : min number of iterations to run each test
                                   : counts from 0, defaults to {RunConfiguration.XUNIT_PERFORMANCE_MIN_ITERATION}
   -maxtotalmilliseconds ""value""   : max number of ms to run each test
                                   : 0 for no max, defaults to {RunConfiguration.XUNIT_PERFORMANCE_MAX_TOTAL_MILLISECONDS}

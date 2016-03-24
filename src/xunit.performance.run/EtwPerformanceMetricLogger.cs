@@ -16,14 +16,13 @@ namespace Microsoft.Xunit.Performance
 {
     internal class EtwPerformanceMetricLogger : IPerformanceMetricLogger
     {
-        private readonly string _etlPath;
+        private string _etlPath { get { return _project.EtlPath; } }
         private readonly XunitPerformanceProject _project;
         private readonly Program _program;
         private readonly List<PerformanceTestInfo> _tests = new List<PerformanceTestInfo>();
 
         public EtwPerformanceMetricLogger(XunitPerformanceProject project, Program program)
         {
-            _etlPath = Path.Combine(project.OutputDir, project.OutputBaseFileName + ".etl");
             _program = program;
             _project = project;
 
