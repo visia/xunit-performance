@@ -347,6 +347,7 @@ Arguments: {startInfo.Arguments}");
                 if (Directory.Exists(destNGENPath))
                     zipper.QueueAddFileOrDir(destNGENPath);
                 zipper.CloseZipFile();
+                File.Delete(project.EtlPath);
             }
         }
 
