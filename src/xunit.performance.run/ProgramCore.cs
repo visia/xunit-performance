@@ -323,6 +323,16 @@ Arguments: {startInfo.Arguments}");
                 xmlPaths.Add(xmlPath);
                 string analysisPath = Path.Combine(project.OutputDir, "performanceAnalysisResults - " + project.OutputBaseFileName + ".html");
                 Analysis.AnalysisHelpers.runAnalysis(xmlPaths, project.baselineXML, htmlOutputPath: analysisPath);
+                var failedTests = Analysis.AnalysisHelpers.getFailedTests(analysisPath);
+                if(failedTests.Count != 0)
+                {
+                    string trailingS = failedTests.Count == 1 ? string.Empty : "s";
+                    Console.WriteLine($"Performance regressions were found in the following {failedTests.Count} test{trailingS}:");
+                    foreach(var test in failedTests)
+                    {
+                        Console.WriteLine($"  {test}");
+                    }
+                }
 
                 // Prepare ngen symbols for zipping
                 string srcNGENPath = Path.Combine(project.OutputDir, project.OutputBaseFileName + ".etl" + ".NGENPDB");

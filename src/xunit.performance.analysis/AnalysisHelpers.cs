@@ -310,6 +310,35 @@ namespace Microsoft.Xunit.Performance.Analysis
             }
         }
 
+        public static List<string> getFailedTests(string htmlPath)
+        {
+            const string failedTestLine = @"<tr><th><font  color=red>Failed Tests</font></th><th><font  color=red># Failed Metrics</font></th></tr>";
+            const string split1 = @"<font  color=red>";
+            string[] split1arr = new string[] { split1 };
+            const string split2 = @"</font>";
+            string[] split2arr = new string[] { split2 };
+            List<string> ret = new List<string>();
+
+            using (var html = new StreamReader(File.Open(htmlPath, FileMode.Open)))
+            {
+                while (!html.EndOfStream)
+                {
+                    var line = html.ReadLine();
+                    if (line == failedTestLine)
+                    {
+                        var newline = html.ReadLine();
+                        while(!html.EndOfStream && newline.Contains(split1) && newline.Contains(split2))
+                        {
+                            var testName = newline.Split(split1arr, StringSplitOptions.None)[1].Split(split2arr, StringSplitOptions.None)[0];
+                            ret.Add(testName);
+                            newline = html.ReadLine();
+                        }
+                    }
+                }
+            }
+            return ret;
+        }
+
         private static string EscapeCsvString(string str)
         {
             // Escape the csv string
