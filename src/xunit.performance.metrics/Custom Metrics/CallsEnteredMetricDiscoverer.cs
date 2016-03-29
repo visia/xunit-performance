@@ -65,22 +65,6 @@ namespace Microsoft.Xunit.Performance
                 }
             }
 
-            private void cleanObjects()
-            {
-                List<string> toRemove = new List<string>();
-                foreach(var item in _objects.Items)
-                {
-                    if(item.Value.Count <= MINCALLS)
-                    {
-                        toRemove.Add(item.Key);
-                    }
-                }
-                foreach(var item in toRemove)
-                {
-                    _objects.Items.Remove(item);
-                }
-            }
-
             public override void BeginIteration(TraceEvent beginEvent)
             {
                 _objects = new ListMetricInfo();
@@ -90,7 +74,6 @@ namespace Microsoft.Xunit.Performance
 
             public override object EndIteration(TraceEvent endEvent)
             {
-                //cleanObjects();
                 var ret = _objects;
                 _objects = null;
                 return ret;

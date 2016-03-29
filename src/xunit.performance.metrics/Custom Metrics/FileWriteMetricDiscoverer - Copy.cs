@@ -17,7 +17,7 @@ namespace Microsoft.Xunit.Performance
         private class FileIOWriteMetric : PerformanceMetric
         {
             public FileIOWriteMetric()
-                : base("FileIOWrite", "File IO Writes", PerformanceMetricUnits.Count)
+                : base("FileWrite", "File Write", PerformanceMetricUnits.ListCountBytes)
             {
             }
 
@@ -30,6 +30,7 @@ namespace Microsoft.Xunit.Performance
                         ProviderGuid = KernelTraceEventParser.ProviderGuid,
                         Level = TraceEventLevel.Verbose,
                         Keywords = (ulong)KernelTraceEventParser.Keywords.FileIO
+                                 | (ulong)KernelTraceEventParser.Keywords.FileIOInit
                     };
                 }
             }
@@ -43,7 +44,7 @@ namespace Microsoft.Xunit.Performance
         private class FileIOWriteEvaluator : PerformanceMetricEvaluator
         {
             private readonly PerformanceMetricEvaluationContext _context;
-            private long _count;
+            private ListMetricInfo _data = null;
 
             public FileIOWriteEvaluator(PerformanceMetricEvaluationContext context)
             {
@@ -51,20 +52,25 @@ namespace Microsoft.Xunit.Performance
                 context.TraceEventSource.Kernel.FileIOWrite += Kernel_FileIOWrite;
             }
 
-            private void Kernel_FileIOWrite(TraceEvent data)
+            private void Kernel_FileIOWrite(FileIOReadWriteTraceData data)
             {
                 if (_context.IsTestEvent(data))
-                    _count += 1;
+                    _data.addItem(data.FileName, data.IoSize);
             }
 
             public override void BeginIteration(TraceEvent beginEvent)
             {
-                _count = 0;
+                _data = new ListMetricInfo();
+                _data.clear();
+                _data.hasCount = true;
+                _data.hasBytes = true;
             }
 
             public override object EndIteration(TraceEvent endEvent)
             {
-                return _count;
+                var ret = _data;
+                _data = null;
+                return ret;
             }
         }
     }

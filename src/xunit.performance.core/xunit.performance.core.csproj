@@ -67,9 +67,8 @@
     <Compile Include="Custom Metrics\MeasureDiskIOWriteAttribute.cs" />
     <Compile Include="Custom Metrics\MeasureDllsLoadedAttribute.cs" />
     <Compile Include="Custom Metrics\MeasureExceptionsAttribute.cs" />
-    <Compile Include="Custom Metrics\MeasureFileIOReadAttribute.cs" />
-    <Compile Include="Custom Metrics\MeasureFileIOWriteAttribute.cs" />
     <Compile Include="Custom Metrics\MeasureFilesReadAttribute.cs" />
+    <Compile Include="Custom Metrics\MeasureFilesWrittenAttribute.cs" />
     <Compile Include="Custom Metrics\MeasureModuleLoadAttribute.cs" />
     <Compile Include="Custom Metrics\MeasureModuleUnloadAttribute.cs" />
     <Compile Include="Custom Metrics\MeasureObjectsAllocatedAttribute.cs" />

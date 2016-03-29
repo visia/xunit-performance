@@ -7,17 +7,17 @@ using Xunit.Abstractions;
 
 namespace Microsoft.Xunit.Performance
 {
-    internal class FilesReadMetricDiscoverer : IPerformanceMetricDiscoverer
+    internal class FilesWrittenMetricDiscoverer : IPerformanceMetricDiscoverer
     {
         public IEnumerable<PerformanceMetricInfo> GetMetrics(IAttributeInfo metricAttribute)
         {
-            yield return new FilesReadMetric();
+            yield return new FilesWrittenMetric();
         }
 
-        private class FilesReadMetric : PerformanceMetric
+        private class FilesWrittenMetric : PerformanceMetric
         {
-            public FilesReadMetric()
-                : base("FilesRead", "Files Read", PerformanceMetricUnits.ListCountBytes)
+            public FilesWrittenMetric()
+                : base("FilesWritten", "Files Written", PerformanceMetricUnits.ListCountBytes)
             {
             }
 
@@ -37,25 +37,25 @@ namespace Microsoft.Xunit.Performance
 
             public override PerformanceMetricEvaluator CreateEvaluator(PerformanceMetricEvaluationContext context)
             {
-                return new FilesReadEvaluator(context);
+                return new FilesWrittenEvaluator(context);
             }
         }
 
-        private class FilesReadEvaluator : PerformanceMetricEvaluator
+        private class FilesWrittenEvaluator : PerformanceMetricEvaluator
         {
             private readonly PerformanceMetricEvaluationContext _context;
             private ListMetricInfo _data = null;
 
-            public FilesReadEvaluator(PerformanceMetricEvaluationContext context)
+            public FilesWrittenEvaluator(PerformanceMetricEvaluationContext context)
             {
                 _context = context;
-                context.TraceEventSource.Kernel.FileIORead += Kernel_FileIORead;
+                context.TraceEventSource.Kernel.FileIOWrite += Kernel_FileIOWrite;
             }
 
-            private void Kernel_FileIORead(FileIOReadWriteTraceData data)
+            private void Kernel_FileIOWrite(FileIOReadWriteTraceData data)
             {
                 if (_context.IsTestEvent(data))
-                    if (_data != null)
+                    if(_data != null)
                         _data.addItem(data.FileName, data.IoSize);
             }
 
