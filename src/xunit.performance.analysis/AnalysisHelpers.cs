@@ -26,7 +26,7 @@ namespace Microsoft.Xunit.Performance.Analysis
         /// <param name="xmlOutputPath">Outputs an xml to this path (optional) (incomplete analysis)</param>
         /// <param name="htmlOutputPath">Outputs an html to this path (optional)</param>
         /// <param name="csvOutputPath">Outputs a csv to this path (optional) (incomplete analysis)</param>
-        public static void runAnalysis(List<string> xmlPaths, string baseline = null, string xmlOutputPath = null, string htmlOutputPath = null, string csvOutputPath = null)
+        public static void runAnalysis(List<string> xmlPaths, string baseline = null, string xmlOutputPath = null, string htmlOutputPath = null, string csvOutputPath = null, string statsCsvOutputPath = null)
         {
             var allComparisonIds = new List<Tuple<string, string>>();
 
@@ -53,6 +53,9 @@ namespace Microsoft.Xunit.Performance.Analysis
 
             if (csvOutputPath != null)
                 WriteTestResultsCSV(testResults, csvOutputPath);
+
+            if (statsCsvOutputPath != null)
+                WriteStatisticsCSV(testResults, statsCsvOutputPath);
         }
 
         private static List<TestResultComparison> DoComparisons(List<Tuple<string, string>> allComparisonIds, Dictionary<string, Dictionary<string, TestResult>> testResults)
@@ -371,6 +374,42 @@ namespace Microsoft.Xunit.Performance.Analysis
             }
         }
 
+        private static void WriteStatisticsCSV(Dictionary<string, Dictionary<string, TestResult>> testResults, string analyzeOutputPath)
+        {
+            using (var writer = new StreamWriter(fileNameToStream(analyzeOutputPath)))
+            {
+                writer.WriteLine("Test, Iterations, Duration Min, Duration Max, Duration Average, Duration Stdev, Metrics");
+                foreach (var run in testResults)
+                {
+                    foreach (var result in run.Value.Values)
+                    {
+                        RunningStatistics durationStats = result.Stats[DurationMetricName];
+                        writer.WriteLine(
+                            "\"{0}\",\"{1}\",\"{2}\",\"{3}\",\"{4}\",\"{5}\",\"{6}\"",
+                            EscapeCsvString(result.TestName),
+                            durationStats.Count,
+                            durationStats.Minimum,
+                            durationStats.Maximum,
+                            durationStats.Mean,
+                            durationStats.StandardDeviation,
+                            EscapeCsvString(GetMetricsString(result.Stats.Keys))
+                            );
+                    }
+                }
+            }
+        }
+
+        private static string GetMetricsString(Dictionary<string, RunningStatistics>.KeyCollection metrics)
+        {
+            StringBuilder builder = new StringBuilder();
+            foreach (string metric in metrics)
+            {
+                builder.AppendFormat("{0};", metric);
+            }
+
+            return builder.ToString();
+        }
+
         internal static IEnumerable<string> ExpandFilePath(string path)
         {
             if (File.Exists(path))
@@ -379,7 +418,7 @@ namespace Microsoft.Xunit.Performance.Analysis
             }
             else if (Directory.Exists(path))
             {
-                foreach (var file in Directory.EnumerateFiles(path, "*.xml"))
+                foreach (var file in Directory.EnumerateFiles(path, "*.xml", SearchOption.AllDirectories))
                     yield return file;
             }
         }
@@ -536,8 +575,8 @@ namespace Microsoft.Xunit.Performance.Analysis
                         else
                             return null;
                     }
-                    else if (degradeBar.metricDegradeBarType == MetricDegradeBarType.None)
-                        return PassedNoDegradeBar;
+                    else if (degradeBar.metricDegradeBarType == MetricDegradeBarType.None) // Do not do comparison
+                        return null; //PassedNoDegradeBar;
                     else // no other degradebar types implemented
                         return null;
                 }

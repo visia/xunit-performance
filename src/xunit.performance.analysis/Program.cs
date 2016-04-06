@@ -30,6 +30,7 @@ namespace Microsoft.Xunit.Performance.Analysis
             var xmlOutputPath = (string)null;
             var htmlOutputPath = (string)null;
             var csvOutputPath = (string)null;
+            var statsCsvOutputPath = (string)null;
             string baseline = null;
 
             for (int i = 0; i < args.Length; i++)
@@ -80,6 +81,11 @@ namespace Microsoft.Xunit.Performance.Analysis
                                 return Usage();
                             csvOutputPath = args[i];
                             break;
+                        case "stats":
+                            if (++i >= args.Length)
+                                return Usage();
+                            statsCsvOutputPath = args[i];
+                            break;
 
                         default:
                             return Usage();
@@ -112,7 +118,7 @@ namespace Microsoft.Xunit.Performance.Analysis
             if (xmlPaths.Count == 0)
                 return Usage();
 
-            AnalysisHelpers.runAnalysis(xmlPaths, baseline, xmlOutputPath, htmlOutputPath, csvOutputPath);
+            AnalysisHelpers.runAnalysis(xmlPaths, baseline, xmlOutputPath, htmlOutputPath, csvOutputPath, statsCsvOutputPath);
 
             return 0;
         }
