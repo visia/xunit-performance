@@ -194,6 +194,9 @@ namespace Microsoft.Xunit.Performance
 
             if (_csvWriter != null)
                 WriteCSV(BenchmarkName, iteration: Iteration, success: Success);
+
+            System.GC.Collect();
+            System.GC.WaitForPendingFinalizers();
         }
     }
 }

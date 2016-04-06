@@ -20,10 +20,10 @@
     </dependencies>
   </metadata>
   <files>
-    <file src="xunit.performance.run\bin\$Configuration$\xunit.abstractions.dll" target="lib\net46" />
-    <file src="xunit.performance.run\bin\$Configuration$\xunit.performance.core.dll" target="lib\net46" />
-    <file src="xunit.performance.run\bin\$Configuration$\xunit.performance.core.pdb" target="lib\net46" />
-    <file src="xunit.performance.run\bin\$Configuration$\xunit.performance.metrics.dll" target="lib\net46" />
-    <file src="xunit.performance.run\bin\$Configuration$\xunit.performance.metrics.pdb" target="lib\net46" />
+    <file src="xunit.performance.run\bin\$Platform$\$Configuration$\xunit.abstractions.dll" target="lib\net46" />
+    <file src="xunit.performance.run\bin\$Platform$\$Configuration$\xunit.performance.core.dll" target="lib\net46" />
+    <file src="xunit.performance.run\bin\$Platform$\$Configuration$\xunit.performance.core.pdb" target="lib\net46" />
+    <file src="xunit.performance.run\bin\$Platform$\$Configuration$\xunit.performance.metrics.dll" target="lib\net46" />
+    <file src="xunit.performance.run\bin\$Platform$\$Configuration$\xunit.performance.metrics.pdb" target="lib\net46" />
   </files>
 </package>

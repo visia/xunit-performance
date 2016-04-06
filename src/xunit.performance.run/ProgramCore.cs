@@ -323,6 +323,16 @@ Arguments: {startInfo.Arguments}");
                 xmlPaths.Add(xmlPath);
                 string analysisPath = Path.Combine(project.OutputDir, "performanceAnalysisResults - " + project.OutputBaseFileName + ".html");
                 Analysis.AnalysisHelpers.runAnalysis(xmlPaths, project.baselineXML, htmlOutputPath: analysisPath);
+                var failedTests = Analysis.AnalysisHelpers.getFailedTests(analysisPath);
+                if(failedTests.Count != 0)
+                {
+                    string trailingS = failedTests.Count == 1 ? string.Empty : "s";
+                    Console.WriteLine($"Performance regressions were found in the following {failedTests.Count} test{trailingS}:");
+                    foreach(var test in failedTests)
+                    {
+                        Console.WriteLine($"  {test}");
+                    }
+                }
 
                 // Prepare ngen symbols for zipping
                 string srcNGENPath = Path.Combine(project.OutputDir, project.OutputBaseFileName + ".etl" + ".NGENPDB");
@@ -342,11 +352,33 @@ Arguments: {startInfo.Arguments}");
                     project.EtlPath
                 };
 
+                foreach(var file in filesToZip)
+                {
+                    Stopwatch sw = new Stopwatch(); // poor man's Thread.Sleep()
+                    sw.Start();
+                    while(IsFileLocked(file))
+                    {
+                        for(int i=0; ; i++)
+                        {
+                            if(i % 500 == 0)
+                            {
+                                sw.Stop();
+                                if (sw.ElapsedMilliseconds > 100)
+                                    break;
+                                else
+                                    sw.Start();
+                            }
+                        }
+                    }
+                }
+
                 // Zipping does not work for xunit.performance.run.core. Replaced with noops
                 ZipperWrapper zipper = new ZipperWrapper(zipPath, filesToZip);
                 if (Directory.Exists(destNGENPath))
                     zipper.QueueAddFileOrDir(destNGENPath);
                 zipper.CloseZipFile();
+                File.Delete(project.EtlPath);
+                File.Delete(scenarioRangesPath);
             }
         }
 
@@ -625,6 +657,28 @@ Arguments: {startInfo.Arguments}");
                 writer.WriteLine(ex.Message);
                 writer.WriteLine(ex.StackTrace);
             }
+        }
+
+        private static bool IsFileLocked(string fileName)
+        {
+            FileInfo file = new FileInfo(fileName);
+            FileStream stream = null;
+
+            try
+            {
+                stream = file.Open(FileMode.Open, FileAccess.Read, FileShare.None);
+            }
+            catch (IOException)
+            {
+                return true;
+            }
+            finally
+            {
+                if (stream != null)
+                    stream.Dispose();
+            }
+            
+            return false;
         }
 
         internal static void ReportExceptionToStderr(Exception ex)

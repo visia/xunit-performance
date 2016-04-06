@@ -26,6 +26,6 @@ echo Building version %BuildSemanticVersion% NuGet packages.
 echo WARNING: Some source files will be modified during this build.
 echo WARNING: Please be careful not to check in those modifications.
 
-msbuild.exe /m /nologo /p:Platform="x64" /t:Nightly /v:m /fl xunit.performance.msbuild
+msbuild.exe /m /nologo /p:Platform="x86" /t:Nightly /v:m /fl xunit.performance.msbuild
 
 goto :eof
