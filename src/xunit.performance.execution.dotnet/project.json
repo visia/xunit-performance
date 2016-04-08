@@ -5,7 +5,7 @@
   },
   "dependencies": {
     "Microsoft.NETCore": "5.0.0",
-    "xunit.extensibility.execution": "2.1.0"
+    "xunit.extensibility.execution": "2.1.0-rc2-build3176"
   },
   "frameworks": {
     "dotnet": {

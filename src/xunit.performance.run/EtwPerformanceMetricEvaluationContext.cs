@@ -14,7 +14,7 @@ namespace Microsoft.Xunit.Performance
 {
     internal class EtwPerformanceMetricEvaluationContext : PerformanceMetricEvaluationContext, IDisposable, IPerformanceMetricReader
     {
-        private const bool MAINTHREADONLY = true;
+        private const bool MAINTHREADONLY = false;
 
         private readonly Dictionary<string, List<KeyValuePair<PerformanceMetric, PerformanceMetricEvaluator>>> _evaluators = new Dictionary<string, List<KeyValuePair<PerformanceMetric, PerformanceMetricEvaluator>>>();
         private readonly Dictionary<string, List<Dictionary<string, Object>>> _metricValues = new Dictionary<string, List<Dictionary<string, Object>>>();
