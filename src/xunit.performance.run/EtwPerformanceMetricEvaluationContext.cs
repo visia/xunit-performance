@@ -14,8 +14,6 @@ namespace Microsoft.Xunit.Performance
 {
     internal class EtwPerformanceMetricEvaluationContext : PerformanceMetricEvaluationContext, IDisposable, IPerformanceMetricReader
     {
-        private const bool MAINTHREADONLY = false;
-
         private readonly Dictionary<string, List<KeyValuePair<PerformanceMetric, PerformanceMetricEvaluator>>> _evaluators = new Dictionary<string, List<KeyValuePair<PerformanceMetric, PerformanceMetricEvaluator>>>();
         private readonly Dictionary<string, List<Dictionary<string, Object>>> _metricValues = new Dictionary<string, List<Dictionary<string, Object>>>();
         private readonly TraceEventSource _traceEventSource;
@@ -46,7 +44,9 @@ namespace Microsoft.Xunit.Performance
 
         public override TraceEventSource TraceEventSource => _traceEventSource;
 
-        public override bool IsTestEvent(TraceEvent traceEvent) => (_currentProcesses.Contains(traceEvent.ProcessID) && (!MAINTHREADONLY || _currentThread == traceEvent.ThreadID));
+        public override bool IsTestEvent(TraceEvent traceEvent) => _currentProcesses.Contains(traceEvent.ProcessID);
+
+        public override bool IsMainThread(TraceEvent traceEvent) => (_currentThread == traceEvent.ThreadID);
 
         internal EtwPerformanceMetricEvaluationContext(string logPath, TraceEventSource traceEventSource, IEnumerable<PerformanceTestInfo> testInfo, string runid)
         {

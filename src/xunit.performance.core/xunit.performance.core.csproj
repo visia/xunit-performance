@@ -63,6 +63,7 @@
     <Compile Include="Custom Metrics\MeasureAssemblyLoadAttribute.cs" />
     <Compile Include="Custom Metrics\MeasureAssemblyUnloadAttribute.cs" />
     <Compile Include="Custom Metrics\MeasureCallsEnteredAttribute.cs" />
+    <Compile Include="Custom Metrics\MeasureCallsEntered_MainThreadAttribute.cs" />
     <Compile Include="Custom Metrics\MeasureDiskIOReadAttribute.cs" />
     <Compile Include="Custom Metrics\MeasureDiskIOWriteAttribute.cs" />
     <Compile Include="Custom Metrics\MeasureDllsLoadedAttribute.cs" />
@@ -72,6 +73,7 @@
     <Compile Include="Custom Metrics\MeasureModuleLoadAttribute.cs" />
     <Compile Include="Custom Metrics\MeasureModuleUnloadAttribute.cs" />
     <Compile Include="Custom Metrics\MeasureObjectsAllocatedAttribute.cs" />
+    <Compile Include="Custom Metrics\MeasureObjectsAllocated_MainThreadAttribute.cs" />
     <Compile Include="IPerformanceMetricAttribute.cs" />
     <Compile Include="IPerformanceMetricDiscoverer.cs" />
     <Compile Include="MeasureGCAllocationsAttribute.cs" />
