@@ -2,22 +2,23 @@
 using Microsoft.Diagnostics.Tracing.Parsers;
 using Microsoft.Diagnostics.Tracing.Parsers.Kernel;
 using Microsoft.Xunit.Performance.Sdk;
+using System;
 using System.Collections.Generic;
 using Xunit.Abstractions;
 
 namespace Microsoft.Xunit.Performance
 {
-    internal class ObjectsAllocatedMetricDiscoverer : IPerformanceMetricDiscoverer
+    internal class CallsEntered_MainThreadMetricDiscoverer : IPerformanceMetricDiscoverer
     {
         public IEnumerable<PerformanceMetricInfo> GetMetrics(IAttributeInfo metricAttribute)
         {
-            yield return new ObjectsAllocatedMetric();
+            yield return new CallsEntered_MainThreadMetric();
         }
 
-        private class ObjectsAllocatedMetric : PerformanceMetric
+        private class CallsEntered_MainThreadMetric : PerformanceMetric
         {
-            public ObjectsAllocatedMetric()
-                : base("ObjectsAllocated", "Objects Allocated", PerformanceMetricUnits.ListCountBytes)
+            public CallsEntered_MainThreadMetric()
+                : base("CallsEntered_MainThread", "Calls Entered Main Thread", PerformanceMetricUnits.ListCount)
             {
             }
 
@@ -29,8 +30,7 @@ namespace Microsoft.Xunit.Performance
                     {
                         ProviderGuid = ETWClrProfilerTraceEventParser.ProviderGuid,
                         Level = TraceEventLevel.Verbose,
-                        Keywords = (ulong)( ETWClrProfilerTraceEventParser.Keywords.GCAlloc
-                                         | ETWClrProfilerTraceEventParser.Keywords.Call),
+                        Keywords = (ulong)(ETWClrProfilerTraceEventParser.Keywords.Call),
                         StacksEnabled = true
                     };
                 }
@@ -38,43 +38,30 @@ namespace Microsoft.Xunit.Performance
 
             public override PerformanceMetricEvaluator CreateEvaluator(PerformanceMetricEvaluationContext context)
             {
-                return new ObjectsAllocatedEvaluator(context);
+                return new CallsEntered_MainThreadEvaluator(context);
             }
         }
 
-        private class ObjectsAllocatedEvaluator : PerformanceMetricEvaluator
+        private class CallsEntered_MainThreadEvaluator : PerformanceMetricEvaluator
         {
             private readonly PerformanceMetricEvaluationContext _context;
             private ListMetricInfo _objects = null;
+            const int MINCALLS = 0;
 
-            public ObjectsAllocatedEvaluator(PerformanceMetricEvaluationContext context)
+            public CallsEntered_MainThreadEvaluator(PerformanceMetricEvaluationContext context)
             {
                 _context = context;
                 var etwClrProfilerTraceEventParser = new ETWClrProfilerTraceEventParser(context.TraceEventSource);
-                etwClrProfilerTraceEventParser.ClassIDDefintion += Parser_ClassIDDefinition;
-                etwClrProfilerTraceEventParser.ObjectAllocated += Parser_ObjectAllocated;
+                etwClrProfilerTraceEventParser.CallEnter += Parser_CallEnter;
             }
 
-            private void Parser_ClassIDDefinition(Microsoft.Diagnostics.Tracing.Parsers.ETWClrProfiler.ClassIDDefintionArgs data)
+            private void Parser_CallEnter(Microsoft.Diagnostics.Tracing.Parsers.ETWClrProfiler.CallEnterArgs data)
             {
-                var classID = data.ClassID.ToString();
-                var className = data.Name;
-                IDDefinitionDictionaries.ClassID_ClassName[classID] = className;
-            }
-
-            private void Parser_ObjectAllocated(Microsoft.Diagnostics.Tracing.Parsers.ETWClrProfiler.ObjectAllocatedArgs data)
-            {
-                if (_context.IsTestEvent(data))
+                if (_context.IsTestEvent(data) && _context.IsMainThread(data))
                 {
-                    var classID = data.ClassID.ToString();
-                    string className;
-                    if (!IDDefinitionDictionaries.ClassID_ClassName.TryGetValue(classID, out className))
-                    {
-                        return;
-                    }
-                    var size = data.Size;
+                    var functionName = data.FunctionName.ToString();
                     if (_objects != null)
-                        _objects.addItem(className, size);
+                        _objects.addItem(functionName, 1);
                 }
             }
 
@@ -83,7 +70,6 @@ namespace Microsoft.Xunit.Performance
                 _objects = new ListMetricInfo();
                 _objects.clear();
                 _objects.hasCount = true;
-                _objects.hasBytes = true;
             }
 
             public override object EndIteration(TraceEvent endEvent)

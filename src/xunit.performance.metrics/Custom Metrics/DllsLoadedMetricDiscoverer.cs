@@ -46,9 +46,6 @@ namespace Microsoft.Xunit.Performance
         {
             private readonly PerformanceMetricEvaluationContext _context;
             private ListMetricInfo _objects = null;
-            private static Dictionary<string, string> _objectModuleDict = new Dictionary<string, string>();
-            private static Dictionary<string, string> _className_classIDDict = new Dictionary<string, string>();
-            private static Dictionary<string, string> _moduleNameDict = new Dictionary<string, string>();
 
             public DllsLoadedEvaluator(PerformanceMetricEvaluationContext context)
             {
@@ -64,7 +61,7 @@ namespace Microsoft.Xunit.Performance
                 var moduleID = data.ModuleID.ToString();
                 var moduleName = data.Path;
 
-                _moduleNameDict[moduleID] = moduleName;
+                IDDefinitionDictionaries.ModuleID_ModuleName[moduleID] = moduleName;
             }
 
             private void Parser_ClassIDDefinition(Microsoft.Diagnostics.Tracing.Parsers.ETWClrProfiler.ClassIDDefintionArgs data)
@@ -76,8 +73,8 @@ namespace Microsoft.Xunit.Performance
 
                 if (moduleID != "0")
                 {
-                    _className_classIDDict[className] = classID;
-                    _objectModuleDict[classID] = moduleID;
+                    IDDefinitionDictionaries.ClassName_ClassID[className] = classID;
+                    IDDefinitionDictionaries.ClassID_ModuleID[classID] = moduleID;
                 }
 
                 else
@@ -96,15 +93,15 @@ namespace Microsoft.Xunit.Performance
                     }
                     string fixedClassID;
 
-                    if (!_className_classIDDict.TryGetValue(fixedClassName, out fixedClassID))
+                    if (!IDDefinitionDictionaries.ClassName_ClassID.TryGetValue(fixedClassName, out fixedClassID))
                     {
                         //throw new System.Exception($"Cannot find class ID for class {fixedClassName}");
                         return;
                     }
 
-                    if(!_objectModuleDict.TryGetValue(fixedClassID, out moduleID))
+                    if(!IDDefinitionDictionaries.ClassID_ModuleID.TryGetValue(fixedClassID, out moduleID))
                         throw new System.Exception($"Cannot find module for class {className}.");
-                    _objectModuleDict[classID] = moduleID;
+                    IDDefinitionDictionaries.ClassID_ModuleID[classID] = moduleID;
                 }
             }
 
@@ -114,12 +111,12 @@ namespace Microsoft.Xunit.Performance
                 {
                     var classID = data.ClassID.ToString();
                     string moduleID;
-                    if(!_objectModuleDict.TryGetValue(classID, out moduleID))
+                    if(!IDDefinitionDictionaries.ClassID_ModuleID.TryGetValue(classID, out moduleID))
                     {
                         return;
                     }
                     string moduleName;
-                    if (!_moduleNameDict.TryGetValue(moduleID, out moduleName))
+                    if (!IDDefinitionDictionaries.ModuleID_ModuleName.TryGetValue(moduleID, out moduleName))
                     {
                         return;
                     }
