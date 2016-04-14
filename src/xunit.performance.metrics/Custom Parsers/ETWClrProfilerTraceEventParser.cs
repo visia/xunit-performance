@@ -86,6 +86,17 @@ namespace Microsoft.Diagnostics.Tracing.Parsers
                 source.UnregisterEventTemplate(value, 11, ProviderGuid);
             }
         }
+        public event Action<FunctionIDDefinitionArgs> FunctionIDDefinition
+        {
+            add
+            {
+                source.RegisterEventTemplate(FunctionIDDefinitionTemplate(value));
+            }
+            remove
+            {
+                source.UnregisterEventTemplate(value, 30, ProviderGuid);
+            }
+        }
         public event Action<GCStartArgs> GCStart
         {
             add
@@ -264,6 +275,10 @@ namespace Microsoft.Diagnostics.Tracing.Parsers
         {                  // action, eventid, taskid, taskName, taskGuid, opcode, opcodeName, providerGuid, providerName
             return new FinalizeableObjectQueuedArgs(action, 11, 13, "FinalizeableObjectQueued", Guid.Empty, 0, "", ProviderGuid, ProviderName );
         }
+        static private FunctionIDDefinitionArgs FunctionIDDefinitionTemplate(Action<FunctionIDDefinitionArgs> action)
+        {                  // action, eventid, taskid, taskName, taskGuid, opcode, opcodeName, providerGuid, providerName
+            return new FunctionIDDefinitionArgs(action, 30, 30, "FunctionIDDefinition", Guid.Empty, 0, "", ProviderGuid, ProviderName );
+        }
         static private GCStartArgs GCStartTemplate(Action<GCStartArgs> action)
         {                  // action, eventid, taskid, taskName, taskGuid, opcode, opcodeName, providerGuid, providerName
             return new GCStartArgs(action, 20, 1, "GC", Guid.Empty, 1, "Start", ProviderGuid, ProviderName );
@@ -326,7 +341,7 @@ namespace Microsoft.Diagnostics.Tracing.Parsers
         {
             if (s_templates == null)
             {
-                var templates = new TraceEvent[19];
+                var templates = new TraceEvent[20];
                 templates[0] = ClassIDDefintionTemplate(null);
                 templates[1] = ModuleIDDefintionTemplate(null);
                 templates[2] = ObjectAllocatedTemplate(null);
@@ -346,6 +361,7 @@ namespace Microsoft.Diagnostics.Tracing.Parsers
                 templates[16] = SamplingRateChangeTemplate(null);
                 templates[17] = CallEnterTemplate(null);
                 templates[18] = SendManifestTemplate(null);
+                templates[19] = FunctionIDDefinitionTemplate(null);
                 s_templates = templates;
             }
             foreach (var template in s_templates)
@@ -362,7 +378,6 @@ namespace Microsoft.Diagnostics.Tracing.Parsers.ETWClrProfiler
     public sealed class CallEnterArgs : TraceEvent
     {
         public Address FunctionID { get { return (Address) GetInt64At(0); } }
-        public string FunctionName { get { return GetUnicodeStringAt(8); } }
 
         #region Private
         internal CallEnterArgs(Action<CallEnterArgs> target, int eventID, int task, string taskName, Guid taskGuid, int opcode, string opcodeName, Guid providerGuid, string providerName)
@@ -388,7 +403,6 @@ namespace Microsoft.Diagnostics.Tracing.Parsers.ETWClrProfiler
         {
              Prefix(sb);
              XmlAttrib(sb, "FunctionID", FunctionID);
-             XmlAttrib(sb, "FunctionName", FunctionName);
              sb.Append("/>");
              return sb;
         }
@@ -398,7 +412,7 @@ namespace Microsoft.Diagnostics.Tracing.Parsers.ETWClrProfiler
             get
             {
                 if (payloadNames == null)
-                    payloadNames = new string[] { "FunctionID", "FunctionName"};
+                    payloadNames = new string[] { "FunctionID"};
                 return payloadNames;
             }
         }
@@ -409,8 +423,6 @@ namespace Microsoft.Diagnostics.Tracing.Parsers.ETWClrProfiler
             {
                 case 0:
                     return FunctionID;
-                case 1:
-                    return FunctionName;
                 default:
                     Debug.Assert(false, "Bad field index");
                     return null;
@@ -552,6 +564,67 @@ namespace Microsoft.Diagnostics.Tracing.Parsers.ETWClrProfiler
         }
 
         private event Action<FinalizeableObjectQueuedArgs> m_target;
+        #endregion
+    }
+    public sealed class FunctionIDDefinitionArgs : TraceEvent
+    {
+        public Address FunctionID { get { return (Address) GetInt64At(0); } }
+        public string FunctionName { get { return GetUnicodeStringAt(8); } }
+
+        #region Private
+        internal FunctionIDDefinitionArgs(Action<FunctionIDDefinitionArgs> target, int eventID, int task, string taskName, Guid taskGuid, int opcode, string opcodeName, Guid providerGuid, string providerName)
+            : base(eventID, task, taskName, taskGuid, opcode, opcodeName, providerGuid, providerName)
+        {
+            this.m_target = target;
+        }
+        protected override void Dispatch()
+        {
+            m_target(this);
+        }
+        protected override void Validate()
+        {
+            Debug.Assert(!(Version == 0 && EventDataLength != SkipUnicodeString(8)));
+            Debug.Assert(!(Version > 0 && EventDataLength < SkipUnicodeString(8)));
+        }
+        protected override Delegate Target
+        {
+            get { return m_target; }
+            set { m_target = (Action<FunctionIDDefinitionArgs>) value; }
+        }
+        public override StringBuilder ToXml(StringBuilder sb)
+        {
+             Prefix(sb);
+             XmlAttrib(sb, "FunctionID", FunctionID);
+             XmlAttrib(sb, "FunctionName", FunctionName);
+             sb.Append("/>");
+             return sb;
+        }
+
+        public override string[] PayloadNames
+        {
+            get
+            {
+                if (payloadNames == null)
+                    payloadNames = new string[] { "FunctionID", "FunctionName"};
+                return payloadNames;
+            }
+        }
+
+        public override object PayloadValue(int index)
+        {
+            switch (index)
+            {
+                case 0:
+                    return FunctionID;
+                case 1:
+                    return FunctionName;
+                default:
+                    Debug.Assert(false, "Bad field index");
+                    return null;
+            }
+        }
+
+        private event Action<FunctionIDDefinitionArgs> m_target;
         #endregion
     }
     public sealed class GCStartArgs : TraceEvent

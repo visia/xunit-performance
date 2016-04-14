@@ -15,5 +15,6 @@ namespace Microsoft.Xunit.Performance.Sdk
         public static Dictionary<string, string> ClassName_ClassID = new Dictionary<string, string>();
         public static Dictionary<string, string> ClassID_ClassName = new Dictionary<string, string>();
         public static Dictionary<string, string> ModuleID_ModuleName = new Dictionary<string, string>();
+        public static Dictionary<string, string> FunctionID_FunctionName = new Dictionary<string, string>();
     }
 }
