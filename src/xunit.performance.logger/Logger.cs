@@ -118,6 +118,7 @@ namespace Microsoft.Xunit.Performance
             {
                 sessions.UserSession = new TraceEventSession(userSessionName, sessions.UserFileName);
                 sessions.UserSession.BufferSizeMB = bufferSizeMB;
+                sessions.UserSession.CircularBufferMB = bufferSizeMB;
 
                 if (IsWin8OrGreater)
                 {
@@ -143,6 +144,7 @@ namespace Microsoft.Xunit.Performance
                 {
                     sessions.KernelSession = new TraceEventSession(KernelTraceEventParser.KernelSessionName, sessions.KernelFileName);
                     sessions.KernelSession.BufferSizeMB = bufferSizeMB;
+                    sessions.KernelSession.CircularBufferMB = bufferSizeMB;
                 }
                 else
                 {
@@ -162,7 +164,7 @@ namespace Microsoft.Xunit.Performance
 
                 foreach (var userInfo in mergedProviderInfo.OfType<UserProviderInfo>())
                 {
-                    if(userInfo.StacksEnabled == true && stacksEnabled)
+                    if (userInfo.StacksEnabled == true && stacksEnabled)
                         sessions.UserSession.EnableProvider(userInfo.ProviderGuid, userInfo.Level, userInfo.Keywords, stacksEnabledOptions);
                     else
                         sessions.UserSession.EnableProvider(userInfo.ProviderGuid, userInfo.Level, userInfo.Keywords);
@@ -170,7 +172,7 @@ namespace Microsoft.Xunit.Performance
                         profilerKeywords |= userInfo.Keywords;
                 }
 
-                if(profilerKeywords != 0)
+                if (profilerKeywords != 0)
                     InstallETWClrProfiler((int)profilerKeywords);
 
                 s_sessions[userSessionName] = sessions;
@@ -224,7 +226,7 @@ namespace Microsoft.Xunit.Performance
             var resourceName = "Microsoft.Xunit.Performance.ETWClrProfiler." + arch.ToLower() + ".ETWClrProfiler.dll";
             var fileName = "ETWClrProfiler_" + arch + ".dll";
             var profilerDll = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName);
-            if(profilerDll == null)
+            if (profilerDll == null)
                 throw new System.Exception($"ERROR do not have a ETWClrProfiler.dll for architecture {arch} {resourceName}");
 
             CopyToTemp(fileName, profilerDll);
