@@ -118,7 +118,6 @@ namespace Microsoft.Xunit.Performance
             {
                 sessions.UserSession = new TraceEventSession(userSessionName, sessions.UserFileName);
                 sessions.UserSession.BufferSizeMB = bufferSizeMB;
-                sessions.UserSession.CircularBufferMB = bufferSizeMB;
 
                 if (IsWin8OrGreater)
                 {
@@ -144,7 +143,6 @@ namespace Microsoft.Xunit.Performance
                 {
                     sessions.KernelSession = new TraceEventSession(KernelTraceEventParser.KernelSessionName, sessions.KernelFileName);
                     sessions.KernelSession.BufferSizeMB = bufferSizeMB;
-                    sessions.KernelSession.CircularBufferMB = bufferSizeMB;
                 }
                 else
                 {
