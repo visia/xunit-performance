@@ -123,6 +123,6 @@ namespace Microsoft.Xunit.Performance.Analysis
             return 0;
         }
 
-        
+
     }
 }

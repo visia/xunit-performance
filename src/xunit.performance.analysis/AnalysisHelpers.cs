@@ -79,7 +79,8 @@ namespace Microsoft.Xunit.Performance.Analysis
 
                     foreach (var metric in comparisonTest.Iterations.First().MetricValues.Keys)
                     {
-                        try {
+                        try
+                        {
                             var metricComparison = new MetricComparison(comparisonResult, metric);
                             // Compute the standard error in the difference
                             var baselineCount = baselineTest.Iterations.Count;
@@ -330,7 +331,7 @@ namespace Microsoft.Xunit.Performance.Analysis
                     if (line == failedTestLine)
                     {
                         var newline = html.ReadLine();
-                        while(!html.EndOfStream && newline.Contains(split1) && newline.Contains(split2))
+                        while (!html.EndOfStream && newline.Contains(split1) && newline.Contains(split2))
                         {
                             var testName = newline.Split(split1arr, StringSplitOptions.None)[1].Split(split2arr, StringSplitOptions.None)[0];
                             ret.Add(testName);
@@ -534,7 +535,7 @@ namespace Microsoft.Xunit.Performance.Analysis
                     }
                     if (PercentChange < 0 && PercentChange < -PercentChangeError)
                     {
-                        if ((BaselineMean - ComparisonMean ) < 1.0) // there's sometimes nondeterministic 0/1 behavior... ignore these
+                        if ((BaselineMean - ComparisonMean) < 1.0) // there's sometimes nondeterministic 0/1 behavior... ignore these
                             return null;
                         return true;
                     }
