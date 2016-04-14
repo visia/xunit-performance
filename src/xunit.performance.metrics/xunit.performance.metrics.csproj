@@ -60,6 +60,7 @@
     <Compile Include="Custom Metrics\AssemblyLoadMetricDiscoverer.cs" />
     <Compile Include="Custom Metrics\AssemblyUnloadMetricDiscoverer.cs" />
     <Compile Include="Custom Metrics\CallsEnteredMetricDiscoverer.cs" />
+    <Compile Include="Custom Metrics\CallsEntered_MainThreadMetricDiscoverer.cs" />
     <Compile Include="Custom Metrics\DiskIOReadMetricDiscoverer.cs" />
     <Compile Include="Custom Metrics\DiskIOWriteMetricDiscoverer.cs" />
     <Compile Include="Custom Metrics\DllsLoadedMetricDiscoverer.cs" />
@@ -71,8 +72,10 @@
     <Compile Include="Custom Metrics\ModuleLoadMetricDiscoverer.cs" />
     <Compile Include="Custom Metrics\ModuleUnloadMetricDiscoverer.cs" />
     <Compile Include="Custom Metrics\ObjectsAllocatedMetricDiscoverer.cs" />
+    <Compile Include="Custom Metrics\ObjectsAllocated_MainThreadMetricDiscoverer.cs" />
     <Compile Include="Custom Parsers\ETWClrProfilerTraceEventParser.cs" />
     <Compile Include="GCAllocationsMetricDiscoverer.cs" />
+    <Compile Include="IDDefinitionDictionaries.cs" />
     <Compile Include="InstructionsRetiredMetricDiscoverer.cs" />
     <Compile Include="GCCountMetricDiscoverer.cs" />
     <Compile Include="PerformanceMetric.cs" />

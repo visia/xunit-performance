@@ -7,17 +7,17 @@ using Xunit.Abstractions;
 
 namespace Microsoft.Xunit.Performance
 {
-    internal class ObjectsAllocatedMetricDiscoverer : IPerformanceMetricDiscoverer
+    internal class ObjectsAllocated_MainThreadMetricDiscoverer : IPerformanceMetricDiscoverer
     {
         public IEnumerable<PerformanceMetricInfo> GetMetrics(IAttributeInfo metricAttribute)
         {
-            yield return new ObjectsAllocatedMetric();
+            yield return new ObjectsAllocated_MainThreadMetric();
         }
 
-        private class ObjectsAllocatedMetric : PerformanceMetric
+        private class ObjectsAllocated_MainThreadMetric : PerformanceMetric
         {
-            public ObjectsAllocatedMetric()
-                : base("ObjectsAllocated", "Objects Allocated", PerformanceMetricUnits.ListCountBytes)
+            public ObjectsAllocated_MainThreadMetric()
+                : base("ObjectsAllocated_MainThread", "Objects Allocated Main Thread", PerformanceMetricUnits.ListCountBytes)
             {
             }
 
@@ -29,7 +29,7 @@ namespace Microsoft.Xunit.Performance
                     {
                         ProviderGuid = ETWClrProfilerTraceEventParser.ProviderGuid,
                         Level = TraceEventLevel.Verbose,
-                        Keywords = (ulong)( ETWClrProfilerTraceEventParser.Keywords.GCAlloc
+                        Keywords = (ulong)(ETWClrProfilerTraceEventParser.Keywords.GCAlloc
                                          | ETWClrProfilerTraceEventParser.Keywords.Call),
                         StacksEnabled = true
                     };
@@ -38,16 +38,16 @@ namespace Microsoft.Xunit.Performance
 
             public override PerformanceMetricEvaluator CreateEvaluator(PerformanceMetricEvaluationContext context)
             {
-                return new ObjectsAllocatedEvaluator(context);
+                return new ObjectsAllocated_MainThreadEvaluator(context);
             }
         }
 
-        private class ObjectsAllocatedEvaluator : PerformanceMetricEvaluator
+        private class ObjectsAllocated_MainThreadEvaluator : PerformanceMetricEvaluator
         {
             private readonly PerformanceMetricEvaluationContext _context;
             private ListMetricInfo _objects = null;
 
-            public ObjectsAllocatedEvaluator(PerformanceMetricEvaluationContext context)
+            public ObjectsAllocated_MainThreadEvaluator(PerformanceMetricEvaluationContext context)
             {
                 _context = context;
                 var etwClrProfilerTraceEventParser = new ETWClrProfilerTraceEventParser(context.TraceEventSource);
@@ -64,7 +64,7 @@ namespace Microsoft.Xunit.Performance
 
             private void Parser_ObjectAllocated(Microsoft.Diagnostics.Tracing.Parsers.ETWClrProfiler.ObjectAllocatedArgs data)
             {
-                if (_context.IsTestEvent(data))
+                if (_context.IsTestEvent(data) && _context.IsMainThread(data))
                 {
                     var classID = data.ClassID.ToString();
                     string className;

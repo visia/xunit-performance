@@ -15,5 +15,7 @@ namespace Microsoft.Xunit.Performance.Sdk
         public abstract TraceEventSource TraceEventSource { get; }
 
         public abstract bool IsTestEvent(TraceEvent traceEvent);
+
+        public abstract bool IsMainThread(TraceEvent traceEvent);
     }
 }

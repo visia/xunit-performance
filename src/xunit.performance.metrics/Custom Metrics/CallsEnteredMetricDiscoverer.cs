@@ -46,20 +46,32 @@ namespace Microsoft.Xunit.Performance
         {
             private readonly PerformanceMetricEvaluationContext _context;
             private ListMetricInfo _objects = null;
-            const int MINCALLS = 0;
 
             public CallsEnteredEvaluator(PerformanceMetricEvaluationContext context)
             {
                 _context = context;
                 var etwClrProfilerTraceEventParser = new ETWClrProfilerTraceEventParser(context.TraceEventSource);
                 etwClrProfilerTraceEventParser.CallEnter += Parser_CallEnter;
+                etwClrProfilerTraceEventParser.FunctionIDDefinition += Parser_FunctionIDDefinition;
+            }
+
+            private void Parser_FunctionIDDefinition(Microsoft.Diagnostics.Tracing.Parsers.ETWClrProfiler.FunctionIDDefinitionArgs data)
+            {
+                var functionID = data.FunctionID.ToString();
+                var functionName = data.FunctionName;
+                IDDefinitionDictionaries.FunctionID_FunctionName[functionID] = functionName;
             }
 
             private void Parser_CallEnter(Microsoft.Diagnostics.Tracing.Parsers.ETWClrProfiler.CallEnterArgs data)
             {
                 if (_context.IsTestEvent(data))
                 {
-                    var functionName = data.FunctionName.ToString();
+                    var functionID = data.FunctionID.ToString();
+                    string functionName;
+                    if (!IDDefinitionDictionaries.FunctionID_FunctionName.TryGetValue(functionID, out functionName))
+                    {
+                        return;
+                    }
                     if (_objects != null)
                         _objects.addItem(functionName, 1);
                 }
