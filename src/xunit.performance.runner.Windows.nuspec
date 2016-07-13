@@ -4,7 +4,7 @@
     <id>Microsoft.DotNet.xunit.performance.runner.Windows</id>
     <version>99.99.99-dev</version>
     <title>xUnit Performance Runner for Windows</title>
-    <authors>ericeil@microsoft.com;pharring@microsoft.com</authors>
+    <authors>ericeil@microsoft.com;pharring@microsoft.com;visia@microsoft.com</authors>
     <owners>Microsoft</owners>
     <description>
 Contains the tools necessary for running xunit Performance tests in Windows using ETW tracing.

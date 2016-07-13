@@ -4,7 +4,7 @@
     <id>Microsoft.DotNet.xunit.performance</id>
     <version>99.99.99-dev</version>
     <title>xUnit Performance</title>
-    <authors>ericeil@microsoft.com;pharring@microsoft.com</authors>
+    <authors>ericeil@microsoft.com;pharring@microsoft.com;visia@microsoft.com</authors>
     <owners>Microsoft</owners>
     <description>
       Contains extensions for authoring and executing performance tests in xUnit.

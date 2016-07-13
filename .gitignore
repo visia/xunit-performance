@@ -215,3 +215,4 @@ ModelManifest.xml
 nuget.exe
 *.nuget.props
 *.nuget.targets
+/nuget

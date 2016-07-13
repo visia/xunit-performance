@@ -1,5 +1,5 @@
 {
-  "version": "99.99.99-dev",
+  "version": "1.0.0-alpha-build0027",
   "title": "xUnit Performance Runner for DNX",
   "description": "Contains the tools necessary for running xunit Performance tests on DNX (Windows, Linux, OSX, etc.)",
   "authors": [ "ericeil@microsoft.com", "pharring@microsoft.com" ],
@@ -12,7 +12,7 @@
   "requireLicenseAcceptance": false,
 
   "dependencies": {
-    "Microsoft.DotNet.xunit.performance.run.core": "99.99.99-dev",
+    "Microsoft.DotNet.xunit.performance.run.core": "1.0.0-alpha-build0027",
     "xunit.extensibility.execution": "2.1.0"
   },
 
