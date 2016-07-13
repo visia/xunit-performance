@@ -1,0 +1,47 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package>
+  <metadata minClientVersion="2.8.5">
+    <id>Microsoft.DotNet.xunit.performance.runner.Windows.x64</id>
+    <version>99.99.99-dev</version>
+    <title>xUnit Performance Runner for Windows x64</title>
+    <authors>ericeil@microsoft.com;pharring@microsoft.com;visia@microsoft.com</authors>
+    <owners>Microsoft</owners>
+    <description>
+Contains the tools necessary for running xunit Performance tests in Windows using ETW tracing.
+    </description>
+    <language>en-US</language>
+    <projectUrl>https://github.com/Microsoft/xunit-performance</projectUrl>
+    <licenseUrl>https://raw.githubusercontent.com/Microsoft/xunit-performance/master/LICENSE</licenseUrl>
+    <iconUrl>http://go.microsoft.com/fwlink/?LinkID=288859</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <dependencies>
+      <dependency id="xunit.runner.console" version="2.1.0" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="xunit.performance.run\bin\$Platform$\$Configuration$\Microsoft.Diagnostics.Tracing.TraceEvent.dll" target="tools\" />
+    <file src="xunit.performance.run\bin\$Platform$\$Configuration$\ProcDomain.dll" target="tools\" />
+    <file src="xunit.performance.run\bin\$Platform$\$Configuration$\ProcDomain.pdb" target="tools\" />
+    <file src="xunit.performance.run\bin\$Platform$\$Configuration$\xunit.abstractions.dll" target="tools\" />
+    <file src="xunit.performance.run\bin\$Platform$\$Configuration$\xunit.core.dll" target="tools\" />
+    <file src="xunit.performance.run\bin\$Platform$\$Configuration$\xunit.performance.core.dll" target="tools\" />
+    <file src="xunit.performance.run\bin\$Platform$\$Configuration$\xunit.performance.core.pdb" target="tools\" />
+    <file src="xunit.performance.run\bin\$Platform$\$Configuration$\xunit.performance.logger.exe" target="tools\" />
+    <file src="xunit.performance.run\bin\$Platform$\$Configuration$\xunit.performance.logger.pdb" target="tools\" />
+    <file src="xunit.performance.run\bin\$Platform$\$Configuration$\xunit.performance.metrics.dll" target="tools\" />
+    <file src="xunit.performance.run\bin\$Platform$\$Configuration$\xunit.performance.metrics.pdb" target="tools\" />
+    <file src="xunit.performance.run\bin\$Platform$\$Configuration$\xunit.performance.run.exe" target="tools\" />
+    <file src="xunit.performance.run\bin\$Platform$\$Configuration$\xunit.performance.run.exe.config" target="tools\" />
+    <file src="xunit.performance.run\bin\$Platform$\$Configuration$\xunit.performance.run.pdb" target="tools\" />
+    <file src="xunit.performance.run\bin\$Platform$\$Configuration$\xunit.runner.utility.desktop.dll" target="tools\" />
+    <file src="xunit.performance.run\bin\$Platform$\$Configuration$\xunit.runner.utility.desktop.pdb" target="tools\" />
+    <file src="xunit.performance.run\bin\$Platform$\$Configuration$\MathNet.Numerics.dll" target="tools\" />
+    <file src="xunit.performance.run\bin\$Platform$\$Configuration$\System.Management.Automation.dll" target="tools\" />
+    <file src="xunit.performance.run\bin\$Platform$\$Configuration$\Zipper.dll" target="tools\" />
+    <!-- Pick up the following directly from the nuget because they're not copied to bin\Release in non-DesignTimeBuild builds -->
+    <file src="..\packages\Microsoft.Diagnostics.Tracing.TraceEvent.1.0.39\lib\native\x86\KernelTraceControl.dll" target="tools\x86\" />
+    <file src="..\packages\Microsoft.Diagnostics.Tracing.TraceEvent.1.0.39\lib\native\x86\msdia140.dll" target="tools\x86\" />
+    <file src="..\packages\Microsoft.Diagnostics.Tracing.TraceEvent.1.0.39\lib\native\amd64\KernelTraceControl.dll" target="tools\amd64\" />
+    <file src="..\packages\Microsoft.Diagnostics.Tracing.TraceEvent.1.0.39\lib\native\amd64\msdia140.dll" target="tools\amd64\" />
+  </files>
+</package>

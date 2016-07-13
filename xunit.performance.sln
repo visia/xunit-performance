@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.25123.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.performance.analysis", "src\xunit.performance.analysis\xunit.performance.analysis.csproj", "{E114F722-0353-4BCE-A1BE-A6D729FDEACD}"
 EndProject
@@ -43,6 +43,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Packages", "Packages", "{21
 		src\xunit.performance.nuspec = src\xunit.performance.nuspec
 		src\xunit.performance.run.core.nuspec = src\xunit.performance.run.core.nuspec
 		src\xunit.performance.runner.Windows.nuspec = src\xunit.performance.runner.Windows.nuspec
+		src\xunit.performance.runner.Windows.x64.nuspec = src\xunit.performance.runner.Windows.x64.nuspec
+		src\xunit.performance.runner.Windows.x86.nuspec = src\xunit.performance.runner.Windows.x86.nuspec
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Targets", "Targets", "{965D5BF3-DE6C-4E73-B82F-9B27FDE3213C}"
